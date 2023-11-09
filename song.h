@@ -6,11 +6,20 @@
 #include <QMediaPlayer>
 #include <QObject>
 #include <QMediaMetaData>
+#include <QEventLoop>
 
 class Song: public QObject
 {
+    Q_OBJECT
+
 public:
     Song(QString* path);
+    void printSong();
+
+signals:
+    void metadataLoaded();
+
+public slots:
     void getMetaData(QMediaPlayer::MediaStatus status);
 
 private:
