@@ -10,6 +10,7 @@ SOURCES += \
     editingbuttons.cpp \
     interface.cpp \
     main.cpp \
+    mediaplayer.cpp \
     picturebox.cpp \
     textmetadata.cpp
 
@@ -17,6 +18,10 @@ HEADERS += \
     applicationbuttons.h \
     editingbuttons.h \
     interface.h \
+    mediaplayer.h \
     picturebox.h \
     textmetadata.h
+
+RESOURCES += \
+    resources.qrc
 

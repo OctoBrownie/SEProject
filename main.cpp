@@ -15,6 +15,7 @@
 #include <textmetadata.h>
 #include <applicationbuttons.h>
 #include <editingbuttons.h>
+#include <mediaplayer.h>
 
 
 
@@ -75,7 +76,9 @@ int main(int argc, char **argv) {
     // Compile the interface
     Interface* mainWindow = new Interface(window, playlistEditPane);
 
+    MediaPlayer* player = new MediaPlayer();
     mainWindow->show();
+    player->show();
 
     return app.exec();
 }
