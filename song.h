@@ -7,6 +7,10 @@
 #include <QObject>
 #include <QMediaMetaData>
 #include <QEventLoop>
+#include <QWidget>
+#include <QHBoxLayout>
+#include <QVBoxLayout>
+#include <QLabel>
 
 class Song: public QObject
 {
@@ -14,12 +18,13 @@ class Song: public QObject
 
 public:
     Song(QString* path);
+    QWidget* createSongBox();
     void printSong();
 
 signals:
     void metadataLoaded();
 
-public slots:
+private slots:
     void getMetaData(QMediaPlayer::MediaStatus status);
 
 private:
