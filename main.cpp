@@ -91,6 +91,7 @@ int main(int argc, char **argv) {
     // Compile the interface
     Interface* mainWindow = new Interface(window, playlistEditPane);
 
+
     mainWindow->show();
 
 

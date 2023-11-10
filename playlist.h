@@ -6,12 +6,12 @@
 #include <QFile>
 #include <QTextStream>
 #include <song.h>
+#include <customsongwidget.h>
 
 class Playlist
 {
 public:
     Playlist(QString* filename=nullptr);
-    void displayPlaylist();
     QWidget* createPlaylistOutput();
 
 protected:

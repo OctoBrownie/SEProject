@@ -3,37 +3,48 @@
 
 #include <QString>
 #include <QImage>
-#include <QMediaPlayer>
-#include <QObject>
-#include <QMediaMetaData>
-#include <QEventLoop>
 #include <QWidget>
 #include <QHBoxLayout>
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QSize>
 
-class Song: public QObject
+#include <taglib/tag.h>
+#include <taglib/fileref.h>
+#include <taglib/mpegfile.h>
+#include <taglib/id3v2tag.h>
+#include <taglib/id3v2frame.h>
+#include <taglib/attachedpictureframe.h>
+
+#include <customsongwidget.h>
+
+class Song
 {
-    Q_OBJECT
-
 public:
-    Song(QString* path);
-    QWidget* createSongBox();
-    void printSong();
+    //Create the song
+    Song(const char* path);
 
-signals:
-    void metadataLoaded();
-
-private slots:
-    void getMetaData(QMediaPlayer::MediaStatus status);
+    //Create a GUI element
+    CustomSongWidget* createSongBox();
 
 private:
+    //Path to the song, used by the MP3 player to play the song later
+    QString* songPath;
+
+    //Title of the song
     QString title;
-    QStringList artists;
+
+    //The artists of the song (can be more than 1, but stored in a string)
+    QString artists;
+
+    //Album from the song
     QString album;
+
+    //Album art
     QImage albumArt;
+
+    //How long the song is, in seconds.
     qint64 duration;
-    QMediaPlayer* connector = new QMediaPlayer();
 };
 
 #endif // SONG_H

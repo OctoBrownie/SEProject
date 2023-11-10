@@ -6,5 +6,6 @@
         <file>icons/Pause.png</file>
         <file>icons/Play.png</file>
         <file>icons/Skip.png</file>
+        <file>images/DefaultMusicImage.png</file>
     </qresource>
 </RCC>

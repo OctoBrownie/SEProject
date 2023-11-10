@@ -21,23 +21,15 @@ void Playlist::processPlaylist(QString* filename) {
 
     while (!input.atEnd()) {
         QString line = input.readLine();
-        Song* newSong = new Song(&line);
+        QByteArray byteArray = line.toUtf8();
+        const char* songPath = byteArray.constData();
+        Song* newSong = new Song(songPath);
         this->allSongs.append(newSong);
     }
 
     file->close();
 }
 
-void Playlist::displayPlaylist() {
-    qDebug() << "Playlist Name: " << this->playlistName << "\n";
-    qDebug() << "User Name: " << this->userName << "\n";
-    qDebug() << "Length: " << this->length << "\n";
-
-    for(int i =0; i < allSongs.length(); i++) {
-        Song* songToPrint = allSongs[i];
-        songToPrint->printSong();
-    }
-}
 
 QWidget* Playlist::createPlaylistOutput() {
     QWidget* output = new QWidget();
@@ -45,7 +37,7 @@ QWidget* Playlist::createPlaylistOutput() {
 
     for(int i =0; i < allSongs.length(); i++) {
         Song* songToPrint = allSongs[i];
-        QWidget* songBox = songToPrint->createSongBox();
+        CustomSongWidget* songBox = songToPrint->createSongBox();
         outLayout->addWidget(songBox);
     }
 
