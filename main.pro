@@ -14,6 +14,9 @@ HEADERS += \
     customsongwidget.h \
     song.h \
 
+RESOURCES += \
+    resources.qrc
+
 
 win32: LIBS += -L$$PWD/taglib/lib/ -ltag
 

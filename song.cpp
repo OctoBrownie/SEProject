@@ -31,3 +31,8 @@ CustomSongWidget* Song::createSongBox() {
     CustomSongWidget* widget = new CustomSongWidget(&this->title, &this->artists, &this->album, &this->albumArt);
     return widget;
 }
+
+QString* Song::getSongPath() {
+    return this->songPath;
+}
+
