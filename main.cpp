@@ -82,6 +82,8 @@ int main(int argc, char **argv) {
     window->setLayout(MP3Viewer);
 
 
+    QString* saveFile = new QString("C:/Users/astro/Desktop/SecondPlaylist.pa");
+    myPlaylist.savePlaylist(saveFile);
 
     // Set the editor pane to the be the playlist editor
     QDockWidget* playlistEditPane = new QDockWidget;

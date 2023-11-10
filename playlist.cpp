@@ -18,6 +18,7 @@ void Playlist::processPlaylist(QString* filename) {
     this->playlistName = input.readLine();
     this->userName = input.readLine();
     this->length = input.readLine().toInt();
+    this->imagePath = input.readLine();
 
     while (!input.atEnd()) {
         QString line = input.readLine();
@@ -28,6 +29,25 @@ void Playlist::processPlaylist(QString* filename) {
     }
 
     file->close();
+}
+
+
+void Playlist::savePlaylist(QString* filename) {
+    QFile* file = new QFile(*filename);
+
+    if (file->open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+
+        QTextStream output(file);
+
+        output << this->playlistName << "\n";
+        output << this->userName << "\n";
+        output << this->length << "\n";
+        output << this->imagePath << "\n";
+
+        for(int i = 0; i < this->allSongs.length(); i++) {
+            output << *allSongs[i]->getSongPath() << "\n";
+        }
+    }
 }
 
 

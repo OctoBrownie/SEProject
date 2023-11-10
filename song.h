@@ -26,6 +26,7 @@ public:
 
     //Create a GUI element
     CustomSongWidget* createSongBox();
+    QString* getSongPath();
 
 private:
     //Path to the song, used by the MP3 player to play the song later

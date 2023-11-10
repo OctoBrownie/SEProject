@@ -13,6 +13,8 @@ class Playlist
 public:
     Playlist(QString* filename=nullptr);
     QWidget* createPlaylistOutput();
+    void savePlaylist(QString* filename);
+
 
 protected:
     void processPlaylist(QString* filename);
@@ -20,10 +22,11 @@ protected:
 
 
 private:
-    QString* openedPlaylist = nullptr;
-    QString playlistName = nullptr;
-    QString userName = nullptr;
+    QString* openedPlaylist;
+    QString playlistName;
+    QString userName;
     qint64 length = 0;
+    QString imagePath;
     QVector<Song*> allSongs;
 
     int playlistPlacement = -1;
