@@ -18,26 +18,38 @@ void Playlist::processPlaylist(QString* filename) {
     this->playlistName = input.readLine();
     this->userName = input.readLine();
     this->length = input.readLine().toInt();
+    this->imagePath = input.readLine();
 
     while (!input.atEnd()) {
         QString line = input.readLine();
-        Song* newSong = new Song(&line);
+        QByteArray byteArray = line.toUtf8();
+        const char* songPath = byteArray.constData();
+        Song* newSong = new Song(songPath);
         this->allSongs.append(newSong);
     }
 
     file->close();
 }
 
-void Playlist::displayPlaylist() {
-    qDebug() << "Playlist Name: " << this->playlistName << "\n";
-    qDebug() << "User Name: " << this->userName << "\n";
-    qDebug() << "Length: " << this->length << "\n";
 
-    for(int i =0; i < allSongs.length(); i++) {
-        Song* songToPrint = allSongs[i];
-        songToPrint->printSong();
+void Playlist::savePlaylist(QString* filename) {
+    QFile* file = new QFile(*filename);
+
+    if (file->open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+
+        QTextStream output(file);
+
+        output << this->playlistName << "\n";
+        output << this->userName << "\n";
+        output << this->length << "\n";
+        output << this->imagePath << "\n";
+
+        for(int i = 0; i < this->allSongs.length(); i++) {
+            output << *allSongs[i]->getSongPath() << "\n";
+        }
     }
 }
+
 
 QWidget* Playlist::createPlaylistOutput() {
     QWidget* output = new QWidget();
@@ -45,7 +57,7 @@ QWidget* Playlist::createPlaylistOutput() {
 
     for(int i =0; i < allSongs.length(); i++) {
         Song* songToPrint = allSongs[i];
-        QWidget* songBox = songToPrint->createSongBox();
+        CustomSongWidget* songBox = songToPrint->createSongBox();
         outLayout->addWidget(songBox);
     }
 

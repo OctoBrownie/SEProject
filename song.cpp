@@ -1,89 +1,38 @@
 #include "song.h"
 
-Song::Song(QString* path)
+Song::Song(const char* path)
 {
-    QEventLoop loop;
-    this->connector->setSource(QUrl::fromLocalFile(*path));
+    this->songPath = new QString(path);
 
+    TagLib::MPEG::File file(path);
 
-    connect(this->connector, &QMediaPlayer::mediaStatusChanged, this, &Song::getMetaData);
-    connect(this, &Song::metadataLoaded, &loop, &QEventLoop::quit);
-    loop.exec();
-}
+    if (file.hasID3v2Tag()) {
+        TagLib::ID3v2::Tag *tag = file.ID3v2Tag();
 
-void Song::getMetaData(QMediaPlayer::MediaStatus status) {
-    if (status == QMediaPlayer::LoadedMedia) {
-        QMediaMetaData data = this->connector->metaData();
-        this->title = data[QMediaMetaData::Title].toString();
+        this->title = QString::fromStdString(tag->title().to8Bit(true));
+        this->artists = QString::fromStdString(tag->artist().to8Bit(true));
+        this->album = QString::fromStdString(tag->album().to8Bit(true));
+        this->duration = file.audioProperties()->length();
+        TagLib::ID3v2::FrameList frameList = tag->frameList("APIC");
 
-        this->artists = data[QMediaMetaData::Author].toStringList();
-        if (this->artists.length() == 0) {
-            this->artists = data[QMediaMetaData::ContributingArtist].toStringList();
+        if (!frameList.isEmpty()) {
+            TagLib::ID3v2::AttachedPictureFrame *pictureFrame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frameList.front());
+
+            if (pictureFrame) {
+                QImage albumArt;
+                albumArt.loadFromData(reinterpret_cast<const uchar*>(pictureFrame->picture().data()), pictureFrame->picture().size());
+                this->albumArt = albumArt;
+            }
         }
-
-        this->album = data[QMediaMetaData::AlbumTitle].toString();
-        this->albumArt = data[QMediaMetaData::ThumbnailImage].value<QImage>();
-        this->duration = data[QMediaMetaData::Duration].toInt();
-
-        emit metadataLoaded();
     }
 }
 
-void Song::printSong() {
-    qDebug() << "Title: " << this->title << "\n";
-    qDebug() << "Album: " << this->album << "\n";
-    qDebug() << "Duration: " << this->duration << "\n";
-
-    if (artists.length() > 0){
-        QString mergedString = artists[0];
-        for (int i = 1; i < artists.length(); i++) {
-            mergedString += artists[i];
-        }
-        qDebug() << "Artists: " << mergedString << "\n";
-    } else {
-        qDebug() << "No artists" << "\n";
-    }
-
-    qDebug() << "Album: " << this->album << "\n";
-    qDebug() << "Duration: " << this->duration << "\n";
+CustomSongWidget* Song::createSongBox() {
+    CustomSongWidget* widget = new CustomSongWidget(&this->title, &this->artists, &this->album, &this->albumArt);
+    return widget;
 }
 
-
-QWidget* Song::createSongBox() {
-    QWidget* box = new QWidget();
-    QHBoxLayout* outerLayout = new QHBoxLayout();
-    QVBoxLayout* innerLayout = new QVBoxLayout();
-    QLabel* titleText = new QLabel(this->title);
-    QString mergedString;
-
-    if (this->artists.length() == 1) {
-        mergedString = this->artists[0];
-    }
-    else if (this->artists.length() > 0) {
-        mergedString = this->artists[0] + ", ";
-        for (int i = 1; i < this->artists.length() - 1; i++) {
-            mergedString += this->artists[i];
-            mergedString += ", ";
-        }
-        mergedString += this->artists[this->artists.length() - 1];
-    } else {
-        mergedString = "No artist found!\n";
-    }
-
-    QLabel* artistText = new QLabel(mergedString);
-    QLabel* albumTest = new QLabel(this->album);
-
-    innerLayout->addWidget(titleText);
-    innerLayout->addWidget(artistText);
-    innerLayout->addWidget(albumTest);
-
-    QLabel* art = new QLabel();
-    QImage image(100, 100, QImage::Format_RGB888);
-    image.fill(Qt::white);
-
-    art->setPixmap(QPixmap::fromImage(image));
-    outerLayout->addWidget(art);
-    outerLayout->addLayout(innerLayout);
-    box->setLayout(outerLayout);
-    return box;
+QString* Song::getSongPath() {
+    return this->songPath;
 }
+
