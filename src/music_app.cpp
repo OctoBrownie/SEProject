@@ -1,4 +1,5 @@
 #include "music_app.h"
+#include "mp3_player.h"
 
 #include<QPushButton>
 #include<QApplication>
@@ -9,6 +10,7 @@
 #include<QAudioOutput>
 
 Music_App::Music_App(QWidget *parent) : QWidget{parent} {
+	Mp3_Player p;
 	setBaseSize(100, 50);
 
 	QVBoxLayout* layout = new QVBoxLayout(this);

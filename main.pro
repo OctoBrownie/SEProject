@@ -20,10 +20,8 @@ INCLUDEPATH += include/
 # for fftw3
 INCLUDEPATH += $$PWD/lib/fftw-3.3.5-dll64
 LIBS += -L$$PWD/lib/fftw-3.3.5-dll64 -llibfftw3-3
-DEPENDPATH += $$PWD/lib/fftw-3.3.5-dll64
 
 # for ffmpeg
 INCLUDEPATH += $$PWD/lib/ffmpeg-6.1/include
-LIBS += -L$$PWD/lib/ffmpeg-6.1/lib
-DEPENDPATH += $$PWD/lib/ffmpeg-6.1/bin
+LIBS += -L$$PWD/lib/ffmpeg-6.1/lib -L$$PWD/lib/ffmpeg-6.1/bin -lavcodec -lavformat -lavutil
 

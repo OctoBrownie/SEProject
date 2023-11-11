@@ -2,6 +2,7 @@
 #define MP3_PLAYER_H
 
 #include<fftw3.h>
+#include<QBuffer>
 
 class Mp3_Player {
 private:
