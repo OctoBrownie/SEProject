@@ -14,7 +14,7 @@ private:
 	QLineEdit* editor;
 public:
     explicit Music_App(QWidget *parent = nullptr);
-    ~Music_App();
+	virtual ~Music_App();
 	// virtual void keyPressEvent(QKeyEvent* event);
 
 public slots:
