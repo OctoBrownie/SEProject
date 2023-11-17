@@ -25,8 +25,12 @@ public:
     Song(const char* path);
 
     //Create a GUI element
-    CustomSongWidget* createSongBox();
+    void createSongBox();
     QString* getSongPath();
+    qint64 getDuration();
+    qint64 getPosition();
+    CustomSongWidget* getBox();
+    void setPosition(qint64 newPosition);
 
 private:
     //Path to the song, used by the MP3 player to play the song later
@@ -46,6 +50,12 @@ private:
 
     //How long the song is, in seconds.
     qint64 duration;
+
+    //This is the position in the playlist
+    qint64 pPosition;
+
+    //This is the respective GUI Widget
+    CustomSongWidget* songBox;
 };
 
 #endif // SONG_H

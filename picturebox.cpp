@@ -1,13 +1,23 @@
 #include "picturebox.h"
+#include "playlist.h"
 
-PictureBox::PictureBox(QWidget* parent): QVBoxLayout(parent)
+PictureBox::PictureBox(Playlist* playlist): QVBoxLayout()
 {
-    QFrame* pictureBox = new QFrame;
-    pictureBox->setFixedSize(150, 150);
-    pictureBox->setFrameStyle(QFrame::Box);
-    pictureBox->setStyleSheet("background-color: white");
+
+    QLabel* art = new QLabel();
+    QSize changedSize(150,150);
+    QPixmap map;
+    QImage* playlistArt = playlist->getImage();
+
+    if (!playlistArt->isNull()) {
+        map = QPixmap::fromImage(*playlistArt).scaled(changedSize, Qt::KeepAspectRatio);
+    } else {
+        QPixmap defaultImage(":/resources/images/NoPlaylistImage.png");
+        map = defaultImage.scaled(changedSize, Qt::KeepAspectRatio);
+    }
+    art->setPixmap(map);
 
     QPushButton* photoSearch = new QPushButton("Browse Photos");
-    addWidget(pictureBox);
+    addWidget(art);
     addWidget(photoSearch);
 }

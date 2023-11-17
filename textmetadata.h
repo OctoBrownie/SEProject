@@ -3,11 +3,18 @@
 
 #include <QWidget>
 #include <QVBoxLayout>
+#include <QLabel>
+
+class Playlist;
 
 class TextMetadata: public QVBoxLayout
 {
 public:
-    TextMetadata(QWidget* parent=nullptr);
+    TextMetadata(Playlist* playlist);
+    void updateDurationLabel(qint64 duration);
+
+private:
+    QLabel* duration;
 };
 
 #endif // TEXTMETADATA_H
