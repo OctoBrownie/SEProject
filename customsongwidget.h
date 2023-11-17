@@ -7,13 +7,20 @@
 #include <QHBoxLayout>
 #include <QMouseEvent>
 
+class Song;
+
 class CustomSongWidget: public QWidget
 {
 public:
-    CustomSongWidget(QString* title, QString* artist, QString* album, QImage* albumArt);
+    CustomSongWidget(Song* song);
+    void setBackground(int value);
 
 protected:
     void mousePressEvent(QMouseEvent *event) override;
+
+private:
+    int selected = 0;
+    Song* fromSong;
 };
 
 #endif // CUSTOMSONGWIDGET_H

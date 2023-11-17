@@ -1,4 +1,7 @@
 #include "song.h"
+#include "playlist.h"
+#include "customsongwidget.h"
+
 
 Song::Song(const char* path)
 {
@@ -29,7 +32,7 @@ Song::Song(const char* path)
 }
 
 void Song::createSongBox() {
-    CustomSongWidget* widget = new CustomSongWidget(&this->title, &this->artists, &this->album, &this->albumArt);
+    CustomSongWidget* widget = new CustomSongWidget(this);
     this->songBox = widget;
 }
 
@@ -53,3 +56,33 @@ CustomSongWidget* Song::getBox() {
     return this->songBox;
 }
 
+void Song::setPlaylist(Playlist* playlist) {
+    this->parentPlaylist = playlist;
+}
+
+QString Song::getSongTitle() {
+    return this->title;
+}
+
+QString Song::getArtist() {
+    return this->artists;
+}
+
+QString Song::getAlbum() {
+    return this->album;
+}
+
+QImage* Song::getArt() {
+    return &this->albumArt;
+}
+
+void Song::setSelected(int value) {
+    this->selected = value;
+    this->parentPlaylist->setSelectedSong(this->pPosition);
+    this->songBox->setBackground(value);
+}
+
+void Song::deactivate() {
+    this->selected = 0;
+    this->songBox->setBackground(0);
+}
