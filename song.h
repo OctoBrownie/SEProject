@@ -16,7 +16,10 @@
 #include <taglib/id3v2frame.h>
 #include <taglib/attachedpictureframe.h>
 
-#include <customsongwidget.h>
+
+class Playlist;
+
+class CustomSongWidget;
 
 class Song
 {
@@ -26,11 +29,21 @@ public:
 
     //Create a GUI element
     void createSongBox();
+    CustomSongWidget* getBox();
+
+
     QString* getSongPath();
     qint64 getDuration();
     qint64 getPosition();
-    CustomSongWidget* getBox();
+    QString getSongTitle();
+    QString getArtist();
+    QString getAlbum();
+    QImage* getArt();
     void setPosition(qint64 newPosition);
+    void setPlaylist(Playlist* playlist);
+    void setSelected(int value);
+    void deactivate();
+
 
 private:
     //Path to the song, used by the MP3 player to play the song later
@@ -54,8 +67,12 @@ private:
     //This is the position in the playlist
     qint64 pPosition;
 
+    Playlist* parentPlaylist;
+
     //This is the respective GUI Widget
     CustomSongWidget* songBox;
+
+    int selected = 0;
 };
 
 #endif // SONG_H

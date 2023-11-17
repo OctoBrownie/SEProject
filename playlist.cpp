@@ -1,4 +1,5 @@
 #include "playlist.h"
+#include "song.h"
 
 Playlist::Playlist(QString* filename)
 {
@@ -26,6 +27,7 @@ void Playlist::processPlaylist(QString* filename) {
         QByteArray byteArray = line.toUtf8();
         const char* songPath = byteArray.constData();
         Song* newSong = new Song(songPath);
+        newSong->setPlaylist(this);
         newSong->setPosition(position);
         this->allSongs.append(newSong);
         position++;
@@ -97,6 +99,7 @@ void Playlist::calcLength() {
 
 void Playlist::addSong(Song* newSong) {
     newSong->setPosition(this->allSongs.length());
+    newSong->setPlaylist(this);
     this->allSongs.append(newSong);
     this->duration += newSong->getDuration();
     this->songsListLayout->addWidget(newSong->getBox());
@@ -180,4 +183,19 @@ EditingButtons* Playlist::getEditingButtons() {
 
 qint64 Playlist::getDuration() {
     return this->duration;
+}
+
+
+void Playlist::setSelectedSong(qint64 pos) {
+    if (this->selectedSong == pos) {
+        this->selectedSong = -1;
+    }
+    else if (this->selectedSong != -1) {
+        allSongs[this->selectedSong]->deactivate();
+        this->selectedSong = pos;
+    } else {
+        this->selectedSong = pos;
+    }
+
+    qDebug() << "The song " << this->selectedSong << " in the list is selected!!!";
 }
