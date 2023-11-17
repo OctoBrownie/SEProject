@@ -85,13 +85,13 @@ int main(int argc, char **argv) {
     Interface* mainWindow = new Interface(window, playlistEditPane);
 
 
-    mainWindow->show();
 
     Song newSong("C:/Users/astro/Downloads/Fluffing-a-Duck(chosic.com).mp3");
     myPlaylist.addSong(&newSong);
     QString* saveFile = new QString("C:/Users/astro/Desktop/SecondPlaylist.pa");
     myPlaylist.savePlaylist(saveFile);
 
+    mainWindow->show();
     return app.exec();
 }
 

@@ -8,12 +8,12 @@
 #include <QFile>
 #include <QTextStream>
 #include <QScrollArea>
-#include <song.h>
 #include <picturebox.h>
 #include <textmetadata.h>
 #include <editingbuttons.h>
 #include <customsongwidget.h>
 
+class Song;
 
 class Playlist: public QObject
 {
@@ -27,6 +27,8 @@ public:
     void setImage(QString imagePath);
     void setUserName(QString name);
     void setPlaylistName(QString name);
+
+    void setSelectedSong(qint64 pos);
 
     QImage* getImage();
     QString getUserName();
