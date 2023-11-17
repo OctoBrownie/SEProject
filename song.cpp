@@ -12,7 +12,7 @@ Song::Song(const char* path)
         this->title = QString::fromStdString(tag->title().to8Bit(true));
         this->artists = QString::fromStdString(tag->artist().to8Bit(true));
         this->album = QString::fromStdString(tag->album().to8Bit(true));
-        this->duration = file.audioProperties()->length();
+        this->duration = file.audioProperties()->lengthInSeconds();
         TagLib::ID3v2::FrameList frameList = tag->frameList("APIC");
 
         if (!frameList.isEmpty()) {
@@ -25,14 +25,31 @@ Song::Song(const char* path)
             }
         }
     }
+    createSongBox();
 }
 
-CustomSongWidget* Song::createSongBox() {
+void Song::createSongBox() {
     CustomSongWidget* widget = new CustomSongWidget(&this->title, &this->artists, &this->album, &this->albumArt);
-    return widget;
+    this->songBox = widget;
 }
 
 QString* Song::getSongPath() {
     return this->songPath;
+}
+
+qint64 Song::getDuration() {
+    return this->duration;
+}
+
+
+qint64 Song::getPosition() {
+    return this->pPosition;
+}
+void Song::setPosition(qint64 newPosition) {
+    this->pPosition = newPosition;
+}
+
+CustomSongWidget* Song::getBox() {
+    return this->songBox;
 }
 

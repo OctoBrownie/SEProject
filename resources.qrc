@@ -1,5 +1,12 @@
 <RCC>
     <qresource prefix="/resources">
+        <file>icons/Back.png</file>
+        <file>icons/EQ.png</file>
+        <file>icons/Loop.png</file>
+        <file>icons/Pause.png</file>
+        <file>icons/Play.png</file>
+        <file>icons/Skip.png</file>
         <file>images/DefaultMusicImage.png</file>
+        <file>images/NoPlaylistImage.png</file>
     </qresource>
 </RCC>
