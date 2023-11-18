@@ -2,16 +2,14 @@
 #define PICTUREBOX_H
 
 #include <QVBoxLayout>
-#include <QFrame>
 #include <QPushButton>
 #include <QLabel>
-
-class Playlist;
 
 class PictureBox: public QVBoxLayout
 {
 public:
-    PictureBox(Playlist* playlist);
+    //Constructor
+    PictureBox(QImage* playlistArt);
 };
 
 #endif // PICTUREBOX_H

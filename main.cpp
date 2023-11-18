@@ -18,6 +18,7 @@
 #include <mediaplayer.h>
 #include <song.h>
 #include <playlist.h>
+#include "editingbuttons.h"
 
 
 
@@ -49,7 +50,7 @@ int main(int argc, char **argv) {
 
 
     QString playPath = QString("C:/Users/astro/Desktop/MyPlaylist.pa");
-    Playlist myPlaylist = Playlist(&playPath);
+    Playlist myPlaylist = Playlist(playPath);
 
 
 
@@ -63,7 +64,7 @@ int main(int argc, char **argv) {
     metadataHolder->addLayout(textData);
 
     // These are the buttons that allow playlist editing
-    EditingButtons* playlistEditorButtons = myPlaylist.getEditingButtons();
+    EditingButtons* playlistEditorButtons = new EditingButtons();
 
     //This is the scrollable list of the songs in the playlist.
     QScrollArea* songsList = new QScrollArea;
@@ -85,13 +86,15 @@ int main(int argc, char **argv) {
     Interface* mainWindow = new Interface(window, playlistEditPane);
 
 
+    mainWindow->show();
 
-    Song newSong("C:/Users/astro/Downloads/Fluffing-a-Duck(chosic.com).mp3");
-    myPlaylist.addSong(&newSong);
+    Song* newSong = new Song("C:/Users/astro/Downloads/Fluffing-a-Duck(chosic.com).mp3");
+    myPlaylist.addSong(newSong);
     QString* saveFile = new QString("C:/Users/astro/Desktop/SecondPlaylist.pa");
     myPlaylist.savePlaylist(saveFile);
 
-    mainWindow->show();
+    myPlaylist.removeSong(5);
+
     return app.exec();
 }
 

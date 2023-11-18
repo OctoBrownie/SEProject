@@ -8,7 +8,6 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 SOURCES += \
     applicationbuttons.cpp \
-    customsongwidget.cpp \
     editingbuttons.cpp \
     interface.cpp \
     main.cpp \
@@ -20,7 +19,6 @@ SOURCES += \
 
 HEADERS += \
     applicationbuttons.h \
-    customsongwidget.h \
     editingbuttons.h \
     interface.h \
     mediaplayer.h \

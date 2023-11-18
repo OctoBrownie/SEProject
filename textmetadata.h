@@ -4,16 +4,29 @@
 #include <QWidget>
 #include <QVBoxLayout>
 #include <QLabel>
+#include <QLineEdit>
 
-class Playlist;
-
+//Text Metadata class. Displays GUI for playlist metadata
 class TextMetadata: public QVBoxLayout
 {
 public:
-    TextMetadata(Playlist* playlist);
+    // Constructor
+    TextMetadata(QString pName, QString uName, qint64 duration);
+
+    // Getters
+    QLineEdit* getPlaylistTitle();
+    QLineEdit* getUsername();
+
     void updateDurationLabel(qint64 duration);
 
 private:
+    //GUI element that edits playlist name
+    QLineEdit* playlistName;
+
+    //GUI element that edits users name
+    QLineEdit* userName;
+
+    //GUI element that displays the duration
     QLabel* duration;
 };
 

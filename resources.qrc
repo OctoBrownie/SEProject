@@ -8,5 +8,7 @@
         <file>icons/Skip.png</file>
         <file>images/DefaultMusicImage.png</file>
         <file>images/NoPlaylistImage.png</file>
+        <file>icons/UpImage.png</file>
+        <file>icons/DownImage.png</file>
     </qresource>
 </RCC>
