@@ -22,7 +22,19 @@ extern "C" {
 
 #include "Mp3Player.h"
 
+int populateBuffer(const char* file, QByteArray*& musicByteArray);
+
+
 Mp3Player::Mp3Player(QWidget *parent) : QWidget{parent} {
+	currByte = 0;
+
+	currFormatCtx = nullptr;
+	currCodec = nullptr;
+	currCodecCtx = nullptr;
+	currFrame = nullptr;
+	currPacket = nullptr;
+	musicBuffer = nullptr;
+
 	audioDevice = 0;
 	currPacket = av_packet_alloc();
 	currFrame = av_frame_alloc();
@@ -52,6 +64,8 @@ Mp3Player::Mp3Player(QWidget *parent) : QWidget{parent} {
 }
 
 Mp3Player::~Mp3Player() {
+	if (musicBuffer != nullptr) delete musicBuffer;
+
 	av_packet_free(&currPacket);
 	av_frame_free(&currFrame);
 	if (currCodecCtx != nullptr) avcodec_free_context(&currCodecCtx);
@@ -63,49 +77,28 @@ bool Mp3Player::initAudio() {
 
 	// init FFMPEG decoding things
 	const char* file = this->lineEdit->text().toLocal8Bit().data();
+//	const char* file = "C:\\Users\\Crystal\\Downloads\\Music\\sine.mp3";
 
-	currFormatCtx = nullptr;
-	if (avformat_open_input(&currFormatCtx, file, nullptr, nullptr) != 0) {
-		// couldn't open the file at all
-		std::cerr << "Couldn't open the file (path: \"" << file << "\")." << std::endl;
-		return false;
-	}
-
-	if (avformat_find_stream_info(currFormatCtx, nullptr) < 0) {
-		// can't get stream info
-		std::cerr << "Couldn't get stream info for the current file..." << std::endl;
-		return false;
-	}
-
-	// since MP3 only supports one stream, we can just use stream[0] and take it as is
-	currCodec = avcodec_find_decoder(currFormatCtx->streams[0]->codecpar->codec_id);
-	currCodecCtx = avcodec_alloc_context3(currCodec);
-	if (avcodec_parameters_to_context(currCodecCtx, currFormatCtx->streams[0]->codecpar) < 0) {
-		// can't get an audio context
-		std::cerr << "Platform doesn't support this audio codec." << std::endl;
-		return false;
-	}
-
-	// stream opening time
-	if (avcodec_open2(currCodecCtx, currCodec, nullptr) < 0) {
-		// couldn't open the stream
-		std::cerr << "Couldn't open the decoding stream." << std::endl;
+	if(populateBuffer(file, this->musicBuffer) == -1) {
+		std::cerr << "The music buffer couldn't be initialized." << std::endl;
 		return false;
 	}
 
 	// init SDL audio device
 	SDL_AudioSpec desired, actual;
 	SDL_memset(&desired, 0, sizeof(desired));
-	desired.freq = currCodecCtx->sample_rate;
+//	desired.freq = currCodecCtx->sample_rate;
+	desired.freq = 44100;
 	desired.format = AUDIO_F32LSB;		// TODO: use currCodecCtx->sample_fmt?
-	desired.channels = currCodecCtx->ch_layout.nb_channels;
+//	desired.channels = currCodecCtx->ch_layout.nb_channels;
+	desired.channels = 1;
 	desired.samples = DEFAULT_BUFFER_SIZE;
 	desired.callback = Mp3Player::audioCallback;
 	desired.userdata = this;
 
 	audioDevice = SDL_OpenAudioDevice(nullptr, 0, &desired, &actual, SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
 
-	av_dump_format(currFormatCtx, 0, file, 0);
+//	av_dump_format(currFormatCtx, 0, file, 0);
 
 	return true;
 }
@@ -125,9 +118,116 @@ void Mp3Player::pause() {
 	if (audioDevice) SDL_PauseAudioDevice(audioDevice, true);
 }
 
+int populateBuffer(const char* file, QByteArray*& musicByteArray) {
+	AVFormatContext *formatCtx = nullptr;
+	if (avformat_open_input(&formatCtx, file, nullptr, nullptr) != 0) {
+		// couldn't open the file at all
+		std::cout << "Couldn't open the file (path: \"" << file << "\")." << std::endl;
+		return -1;
+	}
+
+	if (avformat_find_stream_info(formatCtx, nullptr) < 0) {
+		// can't get stream info
+		return -1;
+	}
+
+	// since MP3 only supports one stream, we can just use stream[0] and take it as is
+	const AVCodec* codec = avcodec_find_decoder(formatCtx->streams[0]->codecpar->codec_id);
+	AVCodecContext* codecCtx = avcodec_alloc_context3(codec);
+	if (avcodec_parameters_to_context(codecCtx, formatCtx->streams[0]->codecpar) < 0) {
+		// can't get an audio context
+		return -1;
+	}
+
+	// stream opening time
+	if (avcodec_open2(codecCtx, codec, nullptr) < 0) {
+		// couldn't open the stream
+		return -1;
+	}
+
+	// buffer setup
+	musicByteArray = new QByteArray();
+	musicByteArray->resize(sizeof(float)*(int)ceil(formatCtx->streams[0]->duration*
+													  av_q2d(formatCtx->streams[0]->time_base)*codecCtx->sample_rate));
+	quint32 currPos = 0;
+
+	// should be one frame per packet
+	AVPacket* pack = av_packet_alloc();
+	AVFrame* frame = av_frame_alloc();
+	int retCode;
+
+	float* currFloat;
+
+	while (av_read_frame(formatCtx, pack) >= 0) {
+		// send the packet to the decoder to be processed
+		retCode = avcodec_send_packet(codecCtx, pack);
+
+		// read all decoded frames (some file formats return multiple per packet)
+		while (retCode >= 0) {
+			retCode = avcodec_receive_frame(codecCtx, frame);
+			for (int sample = 0; sample < frame->nb_samples; sample++) {
+				// assuming floats since it's MP3
+				/*
+				for (int channelNum = 0; channelNum < codecCtx->ch_layout.nb_channels; channelNum++) {
+					currAmplitude = *((float*)(&frame->data[channelNum][sizeof(float)*sample]));
+				}
+				*/
+
+				// only doing one channel right now
+				currFloat = (float*)(&frame->data[0][sizeof(float)*sample]);
+				char* c = (char*)currFloat;
+				(*musicByteArray)[sizeof(float)*currPos] = *c;
+
+				++c;
+				(*musicByteArray)[sizeof(float)*currPos + 1] = *c;
+
+				++c;
+				(*musicByteArray)[sizeof(float)*currPos + 2] = *c;
+
+				++c;
+				(*musicByteArray)[sizeof(float)*currPos + 3] = *c;
+
+				++currPos;
+			}
+
+
+			// data[channel_num] is the data of the frame for each channel (mono/stereo things)
+			// number of channels can be retrieved from codecCtx->ch_layout.nb_channels
+			// bytes/sample comes from av_get_bytes_per_sample(codecCtx->sample_fmt)
+			// number of samples in the frame is from frame->nb_samples
+		}
+
+		// clean packet for later use
+		av_packet_unref(pack);
+		// frame doesn't need to be cleaned because avcodec_receive_frame() does it
+	}
+
+	av_dump_format(formatCtx, 0, file, 0);
+
+	av_packet_free(&pack);
+	av_frame_free(&frame);
+	avcodec_close(codecCtx);
+	avformat_close_input(&formatCtx);
+	return 0;
+}
+
 void Mp3Player::audioCallback(void* userdata, Uint8* stream, int len) {
 	Mp3Player* player = (Mp3Player*) userdata;
 	bool error = false;
+
+	for (int i = 0; i < len; ++i) {
+		if (player->currByte < player->musicBuffer->size()) {
+			stream[i] = (*player->musicBuffer)[player->currByte];
+			++player->currByte;
+		}
+		else stream[i] = 0;
+	}
+	return;
+
+
+
+
+
 
 	// TODO: stream len doesn't align with num channels*float size?
 	Uint8* arr = new Uint8[len];

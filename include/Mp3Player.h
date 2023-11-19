@@ -43,6 +43,9 @@ protected:
 	AVPacket* currPacket;
 	int currSample;
 
+	QByteArray* musicBuffer;
+	int currByte;
+
 	bool initAudio();
 public:
 	explicit Mp3Player(QWidget *parent = nullptr);
