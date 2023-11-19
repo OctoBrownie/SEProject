@@ -1,5 +1,5 @@
-#include "music_app.h"
-#include "mp3_player.h"
+#include "MusicApp.h"
+#include "Mp3Player.h"
 
 #include<QPushButton>
 #include<QWidget>
@@ -26,7 +26,7 @@ Music_App::Music_App(QWidget *parent) : QWidget{parent} {
 	layout->addWidget(b);
 	connect(b, SIGNAL (clicked()), this, SLOT (startStop()));
 
-	layout->addWidget(new Mp3_Player());
+	layout->addWidget(new Mp3Player());
 
 	this->mediaPlayer = new QMediaPlayer;
 	this->audioOutput = new QAudioOutput;

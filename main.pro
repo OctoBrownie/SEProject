@@ -7,13 +7,15 @@ greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 QT += multimedia
 
 SOURCES += \
-    $$PWD/src/main.cpp \
-    $$PWD/src/mp3_player.cpp \
-    $$PWD/src/music_app.cpp
+    src/main.cpp \
+    src/Mp3Player.cpp \
+    src/MusicApp.cpp \
+    src/equalizer.cpp
 
 HEADERS += \
-   $$PWD/include/mp3_player.h \
-   $$PWD/include/music_app.h
+   include/Mp3Player.h \
+   include/MusicApp.h \
+   include/equalizer.h
 
 INCLUDEPATH += include/
 
@@ -24,4 +26,8 @@ LIBS += -L$$PWD/lib/fftw-3.3.5-dll64 -llibfftw3-3
 # for ffmpeg
 INCLUDEPATH += $$PWD/lib/ffmpeg-6.1/include
 LIBS += -L$$PWD/lib/ffmpeg-6.1/lib -L$$PWD/lib/ffmpeg-6.1/bin -lavcodec -lavformat -lavutil
+
+# for SDL
+INCLUDEPATH += $$PWD/lib/SDL2-2.28.5/include
+LIBS += -L$$PWD/lib/SDL2-2.28.5/lib -lsdl2
 

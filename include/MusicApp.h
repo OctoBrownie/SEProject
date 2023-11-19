@@ -1,5 +1,5 @@
-#ifndef MUSIC_APP_H
-#define MUSIC_APP_H
+#ifndef MUSICAPP_H
+#define MUSICAPP_H
 
 #include<QWidget>
 #include<QMediaPlayer>
@@ -23,4 +23,4 @@ public slots:
 signals:
 };
 
-#endif // MUSIC_APP_H
+#endif // MUSICAPP_H
