@@ -22,18 +22,12 @@ extern "C" {
 
 #include "Mp3Player.h"
 
-int populateBuffer(const char* file, QByteArray*& musicByteArray);
-
-
 Mp3Player::Mp3Player(QWidget *parent) : QWidget{parent} {
-	currByte = 0;
-
 	currFormatCtx = nullptr;
 	currCodec = nullptr;
 	currCodecCtx = nullptr;
 	currFrame = nullptr;
 	currPacket = nullptr;
-	musicBuffer = nullptr;
 
 	audioDevice = 0;
 	currPacket = av_packet_alloc();
@@ -64,59 +58,27 @@ Mp3Player::Mp3Player(QWidget *parent) : QWidget{parent} {
 }
 
 Mp3Player::~Mp3Player() {
-	if (musicBuffer != nullptr) delete musicBuffer;
-
 	av_packet_free(&currPacket);
 	av_frame_free(&currFrame);
+}
+
+void Mp3Player::closeStream() {
+	if (audioDevice > 0) {
+		SDL_CloseAudioDevice(audioDevice);
+		audioDevice = 0;
+	}
+
 	avcodec_free_context(&currCodecCtx);
 	avformat_close_input(&currFormatCtx);
 }
 
-bool Mp3Player::initAudio() {
+bool Mp3Player::openStream() {
 	// TODO: prevent calling this twice? or handle it??
+	closeStream();
 
 	// init FFMPEG decoding things
 	const char* file = this->lineEdit->text().toLocal8Bit().data();
-//	const char* file = "C:\\Users\\Crystal\\Downloads\\Music\\sine.mp3";
 
-	if(populateBuffer(file, this->musicBuffer) == -1) {
-		std::cerr << "The music buffer couldn't be initialized." << std::endl;
-		return false;
-	}
-
-	// init SDL audio device
-	SDL_AudioSpec desired, actual;
-	SDL_memset(&desired, 0, sizeof(desired));
-	desired.freq = currCodecCtx->sample_rate;
-	desired.format = AUDIO_F32LSB;		// TODO: use currCodecCtx->sample_fmt?
-	desired.channels = currCodecCtx->ch_layout.nb_channels;
-	desired.samples = DEFAULT_BUFFER_SIZE;
-	desired.callback = Mp3Player::audioCallback;
-	desired.userdata = this;
-
-	audioDevice = SDL_OpenAudioDevice(nullptr, 0, &desired, &actual, SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
-
-//	av_dump_format(currFormatCtx, 0, file, 0);
-
-	return true;
-}
-
-void Mp3Player::play() {
-	if (!audioDevice) {
-		if (!initAudio()) {
-			std::cerr << "Couldn't initialize the audio stream." << std::endl;
-			return;
-		}
-	}
-
-	SDL_PauseAudioDevice(audioDevice, false);
-}
-
-void Mp3Player::pause() {
-	if (audioDevice) SDL_PauseAudioDevice(audioDevice, true);
-}
-
-int Mp3Player::populateBuffer(const char* file, QByteArray*& musicByteArray) {
 	if (avformat_open_input(&currFormatCtx, file, nullptr, nullptr) != 0) {
 		// couldn't open the file at all
 		std::cout << "Couldn't open the file (path: \"" << file << "\")." << std::endl;
@@ -142,75 +104,48 @@ int Mp3Player::populateBuffer(const char* file, QByteArray*& musicByteArray) {
 		return -1;
 	}
 
-	// buffer setup
-	musicByteArray = new QByteArray();
-	musicByteArray->resize(sizeof(float)*currCodecCtx->ch_layout.nb_channels*(int)ceil(currFormatCtx->streams[0]->duration*
-													  av_q2d(currFormatCtx->streams[0]->time_base)*currCodecCtx->sample_rate));
-	quint32 currPos = 0;
+	// init SDL audio device
+	SDL_AudioSpec desired, actual;
+	SDL_memset(&desired, 0, sizeof(desired));
+	desired.freq = currCodecCtx->sample_rate;
+	desired.format = AUDIO_F32LSB;		// TODO: use currCodecCtx->sample_fmt?
+	desired.channels = currCodecCtx->ch_layout.nb_channels;
+	desired.samples = DEFAULT_BUFFER_SIZE;
+	desired.callback = Mp3Player::audioCallback;
+	desired.userdata = this;
 
-	// should be one frame per packet
-	int retCode;
+	audioDevice = SDL_OpenAudioDevice(nullptr, 0, &desired, &actual, SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
 
-	while (av_read_frame(currFormatCtx, currPacket) >= 0) {
-		// send the packet to the decoder to be processed
-		retCode = avcodec_send_packet(currCodecCtx, currPacket);
+	// av_dump_format(currFormatCtx, 0, file, 0);
 
-		// read all decoded frames (some file formats return multiple per packet)
-		while (retCode >= 0) {
-			retCode = avcodec_receive_frame(currCodecCtx, currFrame);
-			for (int sample = 0; sample < currFrame->nb_samples; ++sample) {
-				// assuming floats since it's MP3
-				for (int ch = 0; ch < currCodecCtx->ch_layout.nb_channels; ++ch) {
-					(*musicByteArray)[sizeof(float)*currPos] = currFrame->data[ch][sizeof(float)*sample];
-					(*musicByteArray)[sizeof(float)*currPos+1] = currFrame->data[ch][sizeof(float)*sample+1];
-					(*musicByteArray)[sizeof(float)*currPos+2] = currFrame->data[ch][sizeof(float)*sample+2];
-					(*musicByteArray)[sizeof(float)*currPos+3] = currFrame->data[ch][sizeof(float)*sample+3];
-					++currPos;
-				}
-			}
+	return true;
+}
 
-			// data[channel_num] is the data of the frame for each channel (mono/stereo things)
-			// number of channels can be retrieved from codecCtx->ch_layout.nb_channels
-			// bytes/sample comes from av_get_bytes_per_sample(codecCtx->sample_fmt)
-			// number of samples in the frame is from frame->nb_samples
+void Mp3Player::play() {
+	if (!audioDevice) {
+		if (!openStream()) {
+			std::cerr << "Couldn't initialize the audio stream." << std::endl;
+			return;
 		}
-
-		// clean packet for later use
-		av_packet_unref(currPacket);
-		// frame doesn't need to be cleaned because avcodec_receive_frame() does it
 	}
 
-	av_dump_format(currFormatCtx, 0, file, 0);
+	SDL_PauseAudioDevice(audioDevice, false);
+}
 
-	return 0;
+void Mp3Player::pause() {
+	if (audioDevice) SDL_PauseAudioDevice(audioDevice, true);
 }
 
 void Mp3Player::audioCallback(void* userdata, Uint8* stream, int len) {
 	Mp3Player* player = (Mp3Player*) userdata;
 	bool error = false;
 
-	for (int i = 0; i < len; ++i) {
-		if (player->currByte < player->musicBuffer->size()) {
-			stream[i] = (*player->musicBuffer)[player->currByte];
-			++player->currByte;
-		}
-		else stream[i] = 0;
-	}
-	return;
-
-
-
-
-
-
 	// TODO: stream len doesn't align with num channels*float size?
-	Uint8* arr = new Uint8[len];
 	for (int i = 0; i < len; i++) {
 		if (error) {
-			arr[i] = 0;
+			stream[i] = 0;
 			continue;
 		}
-//		if (error) stream[i] = 0;
 
 		if (player->currSample < 0 || player->currSample >= player->currFrame->nb_samples) {
 			// need new frame, could have a frame ready from the decoder (apparently,
@@ -228,8 +163,7 @@ void Mp3Player::audioCallback(void* userdata, Uint8* stream, int len) {
 				res = av_read_frame(player->currFormatCtx, player->currPacket);
 				if (res == AVERROR_EOF) {
 					std::cerr << "Found the end of the file." << std::endl;
-//					stream[i] = 0;
-					arr[i] = 0;
+					stream[i] = 0;
 					error = true;
 					player->pause();
 					continue;
@@ -237,8 +171,7 @@ void Mp3Player::audioCallback(void* userdata, Uint8* stream, int len) {
 				else if (res < 0) {
 					std::cerr << "Error reading the next packet." << std::endl;
 					// TODO: handle error?!?!
-//					stream[i] = 0;
-					arr[i] = 0;
+					stream[i] = 0;
 					error = true;
 					continue;
 				}
@@ -246,8 +179,7 @@ void Mp3Player::audioCallback(void* userdata, Uint8* stream, int len) {
 				if (avcodec_send_packet(player->currCodecCtx, player->currPacket) < 0) {
 					std::cerr << "Error sending the next packet to the decoder." << std::endl;
 					// TODO: handle error?!?!
-//					stream[i] = 0;
-					arr[i] = 0;
+					stream[i] = 0;
 					error = true;
 					continue;
 				}
@@ -256,16 +188,14 @@ void Mp3Player::audioCallback(void* userdata, Uint8* stream, int len) {
 					// ok what went wrong this time?!
 					std::cerr << "Couldn't retrieve the next frame to be played." << std::endl;
 					// TODO: handle error?!?!
-//					stream[i] = 0;
-					arr[i] = 0;
+					stream[i] = 0;
 					error = true;
 					continue;
 				}
 			}
 			else if (res == AVERROR_EOF) {
 				std::cerr << "Found the end of the file." << std::endl;
-//				stream[i] = 0;
-				arr[i] = 0;
+				stream[i] = 0;
 				error = true;
 				continue;
 			}
@@ -273,8 +203,7 @@ void Mp3Player::audioCallback(void* userdata, Uint8* stream, int len) {
 				// error getting the packet
 				std::cerr << "Couldn't get the next frame..." << std::endl;
 				// TODO: handle error?!?! Set silence?
-//				stream[i] = 0;
-				arr[i] = 0;
+				stream[i] = 0;
 				error = true;
 				continue;
 			}
@@ -285,8 +214,7 @@ void Mp3Player::audioCallback(void* userdata, Uint8* stream, int len) {
 		// assuming floats since it's MP3
 		for (int ch = 0; ch < player->currCodecCtx->ch_layout.nb_channels; ++ch) {
 			for (unsigned long long j = 0; j < sizeof(float); j++) {
-//				stream[i] = player->currFrame->data[ch][sizeof(float)*player->currSample];
-				arr[i] = player->currFrame->data[ch][sizeof(float)*player->currSample + j];
+				stream[i] = player->currFrame->data[ch][sizeof(float)*player->currSample + j];
 				++i;
 			}
 		}
@@ -294,16 +222,6 @@ void Mp3Player::audioCallback(void* userdata, Uint8* stream, int len) {
 		--i;	// reset loop counter to the last byte written (so it works next loop)
 		++player->currSample;
 	}
-
-//	for (int i = 0; i < len; i++) {
-//		std::cout << std::hex << ((int) arr[i]) << ' ';
-//	}
-//	std::cout << std::endl;
-
-	SDL_memset(stream, 0, len);
-	SDL_MixAudio(stream, arr, len, SDL_MIX_MAXVOLUME);
-
-	delete [] arr;
 
 	// TODO: run stream through equalizer if no error
 }

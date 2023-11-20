@@ -43,11 +43,8 @@ protected:
 	AVPacket* currPacket;
 	int currSample;
 
-	QByteArray* musicBuffer;
-	int currByte;
-
-	bool initAudio();
-	int populateBuffer(const char* file, QByteArray*& musicByteArray);
+	bool openStream();
+	void closeStream();
 public:
 	explicit Mp3Player(QWidget *parent = nullptr);
 	virtual ~Mp3Player();
