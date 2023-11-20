@@ -47,6 +47,7 @@ protected:
 	int currByte;
 
 	bool initAudio();
+	int populateBuffer(const char* file, QByteArray*& musicByteArray);
 public:
 	explicit Mp3Player(QWidget *parent = nullptr);
 	virtual ~Mp3Player();

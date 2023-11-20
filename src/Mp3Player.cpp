@@ -68,8 +68,8 @@ Mp3Player::~Mp3Player() {
 
 	av_packet_free(&currPacket);
 	av_frame_free(&currFrame);
-	if (currCodecCtx != nullptr) avcodec_free_context(&currCodecCtx);
-	if (currFormatCtx != nullptr) avformat_close_input(&currFormatCtx);
+	avcodec_free_context(&currCodecCtx);
+	avformat_close_input(&currFormatCtx);
 }
 
 bool Mp3Player::initAudio() {
@@ -87,11 +87,9 @@ bool Mp3Player::initAudio() {
 	// init SDL audio device
 	SDL_AudioSpec desired, actual;
 	SDL_memset(&desired, 0, sizeof(desired));
-//	desired.freq = currCodecCtx->sample_rate;
-	desired.freq = 44100;
+	desired.freq = currCodecCtx->sample_rate;
 	desired.format = AUDIO_F32LSB;		// TODO: use currCodecCtx->sample_fmt?
-//	desired.channels = currCodecCtx->ch_layout.nb_channels;
-	desired.channels = 1;
+	desired.channels = currCodecCtx->ch_layout.nb_channels;
 	desired.samples = DEFAULT_BUFFER_SIZE;
 	desired.callback = Mp3Player::audioCallback;
 	desired.userdata = this;
@@ -118,78 +116,58 @@ void Mp3Player::pause() {
 	if (audioDevice) SDL_PauseAudioDevice(audioDevice, true);
 }
 
-int populateBuffer(const char* file, QByteArray*& musicByteArray) {
-	AVFormatContext *formatCtx = nullptr;
-	if (avformat_open_input(&formatCtx, file, nullptr, nullptr) != 0) {
+int Mp3Player::populateBuffer(const char* file, QByteArray*& musicByteArray) {
+	if (avformat_open_input(&currFormatCtx, file, nullptr, nullptr) != 0) {
 		// couldn't open the file at all
 		std::cout << "Couldn't open the file (path: \"" << file << "\")." << std::endl;
 		return -1;
 	}
 
-	if (avformat_find_stream_info(formatCtx, nullptr) < 0) {
+	if (avformat_find_stream_info(currFormatCtx, nullptr) < 0) {
 		// can't get stream info
 		return -1;
 	}
 
 	// since MP3 only supports one stream, we can just use stream[0] and take it as is
-	const AVCodec* codec = avcodec_find_decoder(formatCtx->streams[0]->codecpar->codec_id);
-	AVCodecContext* codecCtx = avcodec_alloc_context3(codec);
-	if (avcodec_parameters_to_context(codecCtx, formatCtx->streams[0]->codecpar) < 0) {
+	currCodec = avcodec_find_decoder(currFormatCtx->streams[0]->codecpar->codec_id);
+	currCodecCtx = avcodec_alloc_context3(currCodec);
+	if (avcodec_parameters_to_context(currCodecCtx, currFormatCtx->streams[0]->codecpar) < 0) {
 		// can't get an audio context
 		return -1;
 	}
 
 	// stream opening time
-	if (avcodec_open2(codecCtx, codec, nullptr) < 0) {
+	if (avcodec_open2(currCodecCtx, currCodec, nullptr) < 0) {
 		// couldn't open the stream
 		return -1;
 	}
 
 	// buffer setup
 	musicByteArray = new QByteArray();
-	musicByteArray->resize(sizeof(float)*(int)ceil(formatCtx->streams[0]->duration*
-													  av_q2d(formatCtx->streams[0]->time_base)*codecCtx->sample_rate));
+	musicByteArray->resize(sizeof(float)*currCodecCtx->ch_layout.nb_channels*(int)ceil(currFormatCtx->streams[0]->duration*
+													  av_q2d(currFormatCtx->streams[0]->time_base)*currCodecCtx->sample_rate));
 	quint32 currPos = 0;
 
 	// should be one frame per packet
-	AVPacket* pack = av_packet_alloc();
-	AVFrame* frame = av_frame_alloc();
 	int retCode;
 
-	float* currFloat;
-
-	while (av_read_frame(formatCtx, pack) >= 0) {
+	while (av_read_frame(currFormatCtx, currPacket) >= 0) {
 		// send the packet to the decoder to be processed
-		retCode = avcodec_send_packet(codecCtx, pack);
+		retCode = avcodec_send_packet(currCodecCtx, currPacket);
 
 		// read all decoded frames (some file formats return multiple per packet)
 		while (retCode >= 0) {
-			retCode = avcodec_receive_frame(codecCtx, frame);
-			for (int sample = 0; sample < frame->nb_samples; sample++) {
+			retCode = avcodec_receive_frame(currCodecCtx, currFrame);
+			for (int sample = 0; sample < currFrame->nb_samples; ++sample) {
 				// assuming floats since it's MP3
-				/*
-				for (int channelNum = 0; channelNum < codecCtx->ch_layout.nb_channels; channelNum++) {
-					currAmplitude = *((float*)(&frame->data[channelNum][sizeof(float)*sample]));
+				for (int ch = 0; ch < currCodecCtx->ch_layout.nb_channels; ++ch) {
+					(*musicByteArray)[sizeof(float)*currPos] = currFrame->data[ch][sizeof(float)*sample];
+					(*musicByteArray)[sizeof(float)*currPos+1] = currFrame->data[ch][sizeof(float)*sample+1];
+					(*musicByteArray)[sizeof(float)*currPos+2] = currFrame->data[ch][sizeof(float)*sample+2];
+					(*musicByteArray)[sizeof(float)*currPos+3] = currFrame->data[ch][sizeof(float)*sample+3];
+					++currPos;
 				}
-				*/
-
-				// only doing one channel right now
-				currFloat = (float*)(&frame->data[0][sizeof(float)*sample]);
-				char* c = (char*)currFloat;
-				(*musicByteArray)[sizeof(float)*currPos] = *c;
-
-				++c;
-				(*musicByteArray)[sizeof(float)*currPos + 1] = *c;
-
-				++c;
-				(*musicByteArray)[sizeof(float)*currPos + 2] = *c;
-
-				++c;
-				(*musicByteArray)[sizeof(float)*currPos + 3] = *c;
-
-				++currPos;
 			}
-
 
 			// data[channel_num] is the data of the frame for each channel (mono/stereo things)
 			// number of channels can be retrieved from codecCtx->ch_layout.nb_channels
@@ -198,16 +176,12 @@ int populateBuffer(const char* file, QByteArray*& musicByteArray) {
 		}
 
 		// clean packet for later use
-		av_packet_unref(pack);
+		av_packet_unref(currPacket);
 		// frame doesn't need to be cleaned because avcodec_receive_frame() does it
 	}
 
-	av_dump_format(formatCtx, 0, file, 0);
+	av_dump_format(currFormatCtx, 0, file, 0);
 
-	av_packet_free(&pack);
-	av_frame_free(&frame);
-	avcodec_close(codecCtx);
-	avformat_close_input(&formatCtx);
 	return 0;
 }
 
