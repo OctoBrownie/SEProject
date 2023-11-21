@@ -8,14 +8,21 @@ QT += multimedia
 
 SOURCES += \
     src/main.cpp \
-    src/Mp3Player.cpp \
-    src/MusicApp.cpp \
-    src/equalizer.cpp
+    src/mp3player.cpp \
+    src/app.cpp \
+    src/equalizer.cpp \
+    src/song.cpp \
+    src/customsongwidget.cpp
 
 HEADERS += \
-   include/Mp3Player.h \
-   include/MusicApp.h \
-   include/equalizer.h
+   include/mp3player.h \
+   include/app.h \
+   include/equalizer.h \
+   include/customsongwidget.h \
+   include/song.h
+
+RESOURCES += \
+    resources.qrc
 
 INCLUDEPATH += include/
 
@@ -31,3 +38,10 @@ LIBS += -L$$PWD/lib/ffmpeg-6.1/lib -L$$PWD/lib/ffmpeg-6.1/bin -lavcodec -lavform
 INCLUDEPATH += $$PWD/lib/SDL2-2.28.5/include
 LIBS += -L$$PWD/lib/SDL2-2.28.5/lib -lsdl2
 
+# for TagLib
+INCLUDEPATH += $$PWD/taglib/include
+LIBS += -L$$PWD/taglib/lib/ -ltag
+
+win32:!win32-g++: PRE_TARGETDEPS += $$PWD/taglib/lib/tag.lib
+else:win32-g++: PRE_TARGETDEPS += $$PWD/taglib/lib/libtag.a
+DEFINES += TAGLIB_STATIC
