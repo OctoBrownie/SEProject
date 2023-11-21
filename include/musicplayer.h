@@ -1,5 +1,5 @@
-#ifndef MP3PLAYER_H
-#define MP3PLAYER_H
+#ifndef MUSICPLAYER_H
+#define MUSICPLAYER_H
 
 #include<SDL_stdinc.h>
 #include<SDL_audio.h>
@@ -25,7 +25,7 @@ class Equalizer;	// "equalizer.h"
  * Handles playing and displaying the current song. Assumes that the SDL audio
  * subsystem has been initialized.
  */
-class Mp3Player : public QWidget {
+class MusicPlayer : public QWidget {
 protected:
 	Q_OBJECT
 	// for playing music with SDL
@@ -48,8 +48,8 @@ protected:
 	bool openStream();
 	void closeStream();
 public:
-	explicit Mp3Player(QWidget *parent = nullptr);
-	virtual ~Mp3Player();
+	explicit MusicPlayer(QWidget *parent = nullptr);
+	virtual ~MusicPlayer();
 
 	// SDL callback for audio playback
 	// userdata always has an Mp3Player
@@ -61,4 +61,4 @@ public slots:
 signals:
 };
 
-#endif // MP3PLAYER_H
+#endif // MUSICPLAYER_H

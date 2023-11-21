@@ -19,9 +19,9 @@ extern "C" {
 #include<QAudioOutput>
 #include<QAudioFormat>
 
-#include "Mp3Player.h"
+#include "musicplayer.h"
 
-Mp3Player::Mp3Player(QWidget *parent) : QWidget{parent} {
+MusicPlayer::MusicPlayer(QWidget *parent) : QWidget{parent} {
 	currFormatCtx = nullptr;
 	currCodec = nullptr;
 	currCodecCtx = nullptr;
@@ -56,13 +56,13 @@ Mp3Player::Mp3Player(QWidget *parent) : QWidget{parent} {
 	connect(b, SIGNAL (clicked()), this, SLOT (pause()));
 }
 
-Mp3Player::~Mp3Player() {
+MusicPlayer::~MusicPlayer() {
 	closeStream();
 	av_packet_free(&currPacket);
 	av_frame_free(&currFrame);
 }
 
-void Mp3Player::closeStream() {
+void MusicPlayer::closeStream() {
 	if (audioDevice > 0) {
 		SDL_PauseAudioDevice(audioDevice, true);
 		SDL_CloseAudioDevice(audioDevice);
@@ -73,7 +73,7 @@ void Mp3Player::closeStream() {
 	avformat_close_input(&currFormatCtx);
 }
 
-bool Mp3Player::openStream() {
+bool MusicPlayer::openStream() {
 	// in case another stream was open before
 	closeStream();
 
@@ -115,7 +115,7 @@ bool Mp3Player::openStream() {
 	desired.format = AUDIO_F32LSB;		// TODO: use currCodecCtx->sample_fmt?
 	desired.channels = currCodecCtx->ch_layout.nb_channels;
 	desired.samples = DEFAULT_BUFFER_SIZE;
-	desired.callback = Mp3Player::audioCallback;
+	desired.callback = MusicPlayer::audioCallback;
 	desired.userdata = this;
 
 	audioDevice = SDL_OpenAudioDevice(nullptr, 0, &desired, &actual, SDL_AUDIO_ALLOW_SAMPLES_CHANGE);
@@ -125,7 +125,7 @@ bool Mp3Player::openStream() {
 	return true;
 }
 
-void Mp3Player::play() {
+void MusicPlayer::play() {
 	if (!audioDevice && !openStream()) {
 		std::cerr << "Couldn't initialize the audio stream." << std::endl;
 		return;
@@ -134,12 +134,12 @@ void Mp3Player::play() {
 	SDL_PauseAudioDevice(audioDevice, false);
 }
 
-void Mp3Player::pause() {
+void MusicPlayer::pause() {
 	if (audioDevice) SDL_PauseAudioDevice(audioDevice, true);
 }
 
-void Mp3Player::audioCallback(void* userdata, Uint8* stream, int len) {
-	Mp3Player* player = (Mp3Player*) userdata;
+void MusicPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
+	MusicPlayer* player = (MusicPlayer*) userdata;
 	bool error = false;
 
 	// TODO: stream len doesn't align with num channels*float size?

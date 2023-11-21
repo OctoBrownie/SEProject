@@ -1,12 +1,12 @@
-#include "app.h"
-#include "mp3player.h"
-
 #include<QPushButton>
 #include<QWidget>
 #include<QLineEdit>
 #include<QVBoxLayout>
 #include<QMediaPlayer>
 #include<QAudioOutput>
+
+#include "app.h"
+#include "musicplayer.h"
 
 App::App(QWidget *parent) : QWidget{parent} {
 	setBaseSize(100, 50);
@@ -26,7 +26,7 @@ App::App(QWidget *parent) : QWidget{parent} {
 	layout->addWidget(b);
 	connect(b, SIGNAL (clicked()), this, SLOT (startStop()));
 
-	layout->addWidget(new Mp3Player());
+	layout->addWidget(new MusicPlayer());
 
 	this->mediaPlayer = new QMediaPlayer;
 	this->audioOutput = new QAudioOutput;
