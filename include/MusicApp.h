@@ -2,9 +2,9 @@
 #define MUSICAPP_H
 
 #include<QWidget>
-#include<QMediaPlayer>
-#include<QAudioOutput>
-#include<QLineEdit>
+class QMediaPlayer;
+class QAudioOutput;
+class QLineEdit;
 
 class Music_App : public QWidget {
 private:

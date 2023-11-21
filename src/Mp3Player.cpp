@@ -1,9 +1,8 @@
 #include<fftw3.h>
 extern "C" {
-	#include <libavutil/frame.h>
-	#include<libavcodec/avcodec.h>
-	#include<libavformat/avformat.h>
-	#include<libavutil/avutil.h>
+#include<libavcodec/avcodec.h>
+#include<libavformat/avformat.h>
+#include<libavutil/avutil.h>
 }
 #include<iostream>
 #include<math.h>
@@ -58,12 +57,14 @@ Mp3Player::Mp3Player(QWidget *parent) : QWidget{parent} {
 }
 
 Mp3Player::~Mp3Player() {
+	closeStream();
 	av_packet_free(&currPacket);
 	av_frame_free(&currFrame);
 }
 
 void Mp3Player::closeStream() {
 	if (audioDevice > 0) {
+		SDL_PauseAudioDevice(audioDevice, true);
 		SDL_CloseAudioDevice(audioDevice);
 		audioDevice = 0;
 	}
@@ -73,7 +74,7 @@ void Mp3Player::closeStream() {
 }
 
 bool Mp3Player::openStream() {
-	// TODO: prevent calling this twice? or handle it??
+	// in case another stream was open before
 	closeStream();
 
 	// init FFMPEG decoding things
@@ -81,12 +82,13 @@ bool Mp3Player::openStream() {
 
 	if (avformat_open_input(&currFormatCtx, file, nullptr, nullptr) != 0) {
 		// couldn't open the file at all
-		std::cout << "Couldn't open the file (path: \"" << file << "\")." << std::endl;
+		std::cerr << "Couldn't open the file (path: \"" << file << "\")." << std::endl;
 		return -1;
 	}
 
 	if (avformat_find_stream_info(currFormatCtx, nullptr) < 0) {
 		// can't get stream info
+		std::cerr << "Couldn't get the stream info for \"" << file << "\"" << std::endl;
 		return -1;
 	}
 
@@ -95,12 +97,14 @@ bool Mp3Player::openStream() {
 	currCodecCtx = avcodec_alloc_context3(currCodec);
 	if (avcodec_parameters_to_context(currCodecCtx, currFormatCtx->streams[0]->codecpar) < 0) {
 		// can't get an audio context
+		std::cerr << "Couldn't retrieve the audio codec for MP3s...?" << std::endl;
 		return -1;
 	}
 
 	// stream opening time
 	if (avcodec_open2(currCodecCtx, currCodec, nullptr) < 0) {
 		// couldn't open the stream
+		std::cerr << "Couldn't open the decoding stream." << std::endl;
 		return -1;
 	}
 
@@ -122,11 +126,9 @@ bool Mp3Player::openStream() {
 }
 
 void Mp3Player::play() {
-	if (!audioDevice) {
-		if (!openStream()) {
-			std::cerr << "Couldn't initialize the audio stream." << std::endl;
-			return;
-		}
+	if (!audioDevice && !openStream()) {
+		std::cerr << "Couldn't initialize the audio stream." << std::endl;
+		return;
 	}
 
 	SDL_PauseAudioDevice(audioDevice, false);
@@ -190,6 +192,7 @@ void Mp3Player::audioCallback(void* userdata, Uint8* stream, int len) {
 					// TODO: handle error?!?!
 					stream[i] = 0;
 					error = true;
+					player->pause();
 					continue;
 				}
 			}

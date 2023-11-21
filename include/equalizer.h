@@ -4,7 +4,7 @@
 
 class Equalizer {
 private:
-
+	float MAX_MULT = 5;
 public:
 	Equalizer();
 };

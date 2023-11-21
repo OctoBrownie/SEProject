@@ -4,23 +4,22 @@
 #include<SDL_stdinc.h>
 #include<SDL_audio.h>
 
-extern "C" {
-#include<libavutil/frame.h>
-#include<libavcodec/avcodec.h>
-#include<libavformat/avformat.h>
-}
+// FFMPEG
+struct AVFormatContext;	// <libavformat/avformat.h>
+struct AVCodec;			// <libavcodec/avcodec.h>
+struct AVCodecContext;	// <libavcodec/avcodec.h>
+struct AVFrame;			// <libavutil/avcodec.h>
+struct AVPacket;		// <libavutil/avcodec.h>
 
+// Qt
 #include<QWidget>
-#include<QAudioSink>
-#include<QLineEdit>
+class QLineEdit;
 
-#include<QAudioOutput>
-#include<QByteArray>
-#include<QBuffer>
+// project
+class Equalizer;	// "equalizer.h"
+
 
 #define DEFAULT_BUFFER_SIZE 4096
-
-// #include "SongIODevice.h"
 
 /**
  * Handles playing and displaying the current song. Assumes that the SDL audio
@@ -29,8 +28,11 @@ extern "C" {
 class Mp3Player : public QWidget {
 protected:
 	Q_OBJECT
-	// stuff for playing music
+	// for playing music with SDL
 	SDL_AudioDeviceID audioDevice;
+
+	// for equalizing stuff
+	Equalizer* equalizer;
 
 	// widget for song input
 	QLineEdit* lineEdit;
