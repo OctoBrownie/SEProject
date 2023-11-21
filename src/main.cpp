@@ -2,7 +2,7 @@
 #include<QApplication>
 #include<iostream>
 
-#include "MusicApp.h"
+#include "app.h"
 
 int main(int argc, char** argv) {
 	SDL_setenv("SDL_AUDIODRIVER", "directsound", 1);
@@ -13,7 +13,7 @@ int main(int argc, char** argv) {
 
     QApplication app(argc, argv);
 
-    Music_App a;
+	App a;
     a.show();
 
 	int res = app.exec();	// app event loop

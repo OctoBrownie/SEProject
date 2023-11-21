@@ -1,5 +1,5 @@
-#include "MusicApp.h"
-#include "Mp3Player.h"
+#include "app.h"
+#include "mp3player.h"
 
 #include<QPushButton>
 #include<QWidget>
@@ -8,7 +8,7 @@
 #include<QMediaPlayer>
 #include<QAudioOutput>
 
-Music_App::Music_App(QWidget *parent) : QWidget{parent} {
+App::App(QWidget *parent) : QWidget{parent} {
 	setBaseSize(100, 50);
 
 	QVBoxLayout* layout = new QVBoxLayout(this);
@@ -33,19 +33,19 @@ Music_App::Music_App(QWidget *parent) : QWidget{parent} {
 	this->mediaPlayer->setAudioOutput(this->audioOutput);
 }
 
-Music_App::~Music_App() {
+App::~App() {
 	delete this->mediaPlayer;
 	delete this->audioOutput;
 }
 
 // slot for button
-void Music_App::startMusic() {
+void App::startMusic() {
 	mediaPlayer->setSource(QUrl::fromLocalFile(this->editor->text()));
 	audioOutput->setVolume(0.5);
 	mediaPlayer->play();
 }
 
-void Music_App::startStop() {
+void App::startStop() {
 	if (mediaPlayer->isPlaying()) mediaPlayer->stop();
 	else mediaPlayer->play();
 }
