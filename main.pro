@@ -39,9 +39,9 @@ INCLUDEPATH += $$PWD/lib/SDL2-2.28.5/include
 LIBS += -L$$PWD/lib/SDL2-2.28.5/lib -lsdl2
 
 # for TagLib
-INCLUDEPATH += $$PWD/taglib/include
-LIBS += -L$$PWD/taglib/lib/ -ltag
+INCLUDEPATH += $$PWD/lib/taglib/include
+LIBS += -L$$PWD/lib/taglib/lib/ -ltag
 
-win32:!win32-g++: PRE_TARGETDEPS += $$PWD/taglib/lib/tag.lib
-else:win32-g++: PRE_TARGETDEPS += $$PWD/taglib/lib/libtag.a
+win32:!win32-g++: PRE_TARGETDEPS += $$PWD/lib/taglib/lib/tag.lib
+else:win32-g++: PRE_TARGETDEPS += $$PWD/lib/taglib/lib/libtag.a
 DEFINES += TAGLIB_STATIC
