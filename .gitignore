@@ -71,7 +71,3 @@ CMakeLists.txt.user*
 # --------
 *.dll
 *.exe
-
-
-#Custom Library
-taglib/

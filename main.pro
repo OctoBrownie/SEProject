@@ -7,36 +7,37 @@ QT += multimedia
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 SOURCES += \
-    applicationbuttons.cpp \
-    editingbuttons.cpp \
-    interface.cpp \
-    main.cpp \
-    mediaplayer.cpp \
-    picturebox.cpp \
-    playlist.cpp \
-    song.cpp \
-    textmetadata.cpp
+    src/applicationbuttons.cpp \
+    src/editingbuttons.cpp \
+    src/interface.cpp \
+    src/main.cpp \
+    src/mediaplayer.cpp \
+    src/picturebox.cpp \
+    src/playlist.cpp \
+    src/song.cpp \
+    src/textmetadata.cpp
 
 HEADERS += \
-    applicationbuttons.h \
-    editingbuttons.h \
-    interface.h \
-    mediaplayer.h \
-    picturebox.h \
-    playlist.h \
-    song.h \
-    textmetadata.h
+    include/applicationbuttons.h \
+    include/editingbuttons.h \
+    include/interface.h \
+    include/mediaplayer.h \
+    include/picturebox.h \
+    include/playlist.h \
+    include/song.h \
+    include/textmetadata.h
+
+INCLUDEPATH += include/
 
 RESOURCES += \
     resources.qrc
 
 
-win32: LIBS += -L$$PWD/taglib/lib/ -ltag
-
-INCLUDEPATH += $$PWD/taglib/include
-DEPENDPATH += $$PWD/taglib/include
-
-win32:!win32-g++: PRE_TARGETDEPS += $$PWD/taglib/lib/tag.lib
-else:win32-g++: PRE_TARGETDEPS += $$PWD/taglib/lib/libtag.a
-
+# for TagLib
+INCLUDEPATH += $$PWD/lib/taglib/include
+LIBS += -L$$PWD/lib/taglib/lib/ -ltag
+win32 {
+    win32-g++: PRE_TARGETDEPS += $$PWD/lib/taglib/lib/libtag.a
+    else: PRE_TARGETDEPS += $$PWD/lib/taglib/lib/tag.lib
+}
 DEFINES += TAGLIB_STATIC
