@@ -1,27 +1,22 @@
 #ifndef PLAYLIST_H
 #define PLAYLIST_H
 
-#include<QWidget>
-#include<QVBoxLayout>
-#include<QVector>
-#include<QFile>
-#include<QTextStream>
-#include<QScrollArea>
-
 #include "picturebox.h"
 #include "textmetadata.h"
 #include "song.h"
 
 
 //Playlist class
-class Playlist: public QObject
-{
+class Playlist: public QObject {
 public:
     //Constructor
     Playlist(QString filename=nullptr);
 
     //Save the playlist to a specified filename
     void savePlaylist(QString* filename);
+
+	// save and overwrite the playlist in the current file
+	void save() { savePlaylist(&openedPlaylist); }
 
     //Add a song to a playlist
     void addSong(Song* newSong);
@@ -32,14 +27,13 @@ public:
     //Return the currently selected song; technically a getter but really important
     Song* getSelectedSong();
 
+	//Checks whether this is a valid playlist or not
+	bool isValid() { return valid; }
+
     //Setters
-
     void setImage(QString imagePath);
-
     void setUserName(QString name);
-
     void setPlaylistName(QString name);
-
     void setSelectedSong(qint64 pos);
 
 
@@ -68,7 +62,9 @@ protected:
     void moveSong(int pos, int status);
 
 
-private:
+	// whether the playlist as a whole is valid or not (set in processPlaylist(QString))
+	bool valid;
+
     //Playlist path
     QString openedPlaylist;
 

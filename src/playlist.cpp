@@ -1,8 +1,15 @@
+#include<QWidget>
+#include<QVBoxLayout>
+#include<QVector>
+#include<QFile>
+#include<QTextStream>
+#include<QScrollArea>
+#include<QLineEdit>
+
 #include "playlist.h"
 
 //Playlist constructor
-Playlist::Playlist(QString filename)
-{
+Playlist::Playlist(QString filename) {
     this->processPlaylist(filename);
 }
 
@@ -185,7 +192,8 @@ void Playlist::processPlaylist(QString filename) {
     //Open file
     QFile* file = new QFile(filename);
     if (!file->open(QIODevice::ReadOnly | QIODevice::Text)) {
-        //Error handling. Will probably raise an alert, and exit.
+		// TODO: error handling. Raise an alert and exit?
+		valid = false;
         return;
     }
 
@@ -198,7 +206,7 @@ void Playlist::processPlaylist(QString filename) {
     this->userName = input.readLine();
     this->duration = input.readLine().toInt();
     this->imagePath = input.readLine();
-    this->playlistImage = QImage(this->imagePath);
+	this->playlistImage = QImage(this->imagePath);
 
     //Go through the file
     qint64 position = 0;
@@ -216,10 +224,10 @@ void Playlist::processPlaylist(QString filename) {
         this->allSongs.append(newSong);
         position++;
 
-        //Connect the selectedSong signal from Song, so that when the signal is sent, the playlist will set the selected song to the value in the signal (the value of the song in the playlist)
+		//Connect the selectedSong signal from Song, so that when the signal is sent, the playlist will set the selected song to the value in the signal (the value of the song in the playlist)
         connect(newSong, &Song::selectedSong, this, &Playlist::setSelectedSong);
 
-        //Connect to the button clicked signal, to determine when the up or down button is clicked.
+		//Connect to the button clicked signal, to determine when the up or down button is clicked.
         connect(newSong, &Song::buttonClicked, this, &Playlist::moveSong);
     }
 
@@ -227,6 +235,8 @@ void Playlist::processPlaylist(QString filename) {
 
     //Create the GUI elements
     createPlaylistOutput();
+
+	valid = true;
 }
 
 

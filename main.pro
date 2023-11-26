@@ -7,8 +7,6 @@ QT += multimedia
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 SOURCES += \
-    src/applicationbuttons.cpp \
-    src/editingbuttons.cpp \
     src/interface.cpp \
     src/main.cpp \
     src/mediaplayer.cpp \
@@ -18,8 +16,6 @@ SOURCES += \
     src/textmetadata.cpp
 
 HEADERS += \
-    include/applicationbuttons.h \
-    include/editingbuttons.h \
     include/interface.h \
     include/mediaplayer.h \
     include/picturebox.h \

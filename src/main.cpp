@@ -37,15 +37,15 @@ int main(int argc, char **argv) {
     MP3Viewer->setAlignment(Qt::AlignTop);
 
     QVBoxLayout* MP3ViewerLayout = new QVBoxLayout();
-    // Buttons that provide central functionality to the application
-    ApplicationButtons* applicationButtons = new ApplicationButtons;
+	// Buttons that provide central functionality to the application
+	QHBoxLayout* applicationButtons = Interface::createMainToolbar();
 
     MediaPlayer* player = new MediaPlayer();
     QSpacerItem* spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     MP3ViewerLayout->addLayout(applicationButtons);
     MP3ViewerLayout->addSpacerItem(spacer);
-    MP3ViewerLayout->addWidget(player);
+	MP3ViewerLayout->addWidget(player);
     MP3Viewer->addLayout(MP3ViewerLayout);
 
     QWidget *window = new QWidget;
@@ -53,10 +53,9 @@ int main(int argc, char **argv) {
 
 
 //	QString playPath = QString("C:/Users/astro/Desktop/MyPlaylist.pa");
-	// QString playPath = QString("./invalid/file.pa");
-	QString playPath = QString("C:/Users/Crystal/Downloads/asdf.pa");
+	QString playPath = QString("./invalid/file.pa");
     Playlist myPlaylist = Playlist(playPath);
-	if (!myPlaylist.getTextMetadata()) {
+	if (!myPlaylist.isValid()) {
 		std::cerr << "And you thought you'd be able to easily run everything on startup?! Here, have an invalid file." << std::endl;
 		return 1;
 	}
@@ -72,8 +71,8 @@ int main(int argc, char **argv) {
     metadataHolder->addLayout(photoData);
     metadataHolder->addLayout(textData);
 
-    // These are the buttons that allow playlist editing
-    EditingButtons* playlistEditorButtons = new EditingButtons();
+	// These are the buttons that allow playlist editing
+	QHBoxLayout* playlistEditorButtons = Interface::createPlaylistToolbar();
 
     //This is the scrollable list of the songs in the playlist.
     QScrollArea* songsList = new QScrollArea;
