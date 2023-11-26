@@ -2,7 +2,21 @@
 
 #include "equalizer.h"
 
-Equalizer::Equalizer() {
+
+// max muliplier for any equalizer setting
+#define EQUALIZER_MAX_MULT 5
+
+// window and buffer size for the FFTs
+#define EQUALIZER_WINDOW_SIZE 4096
+
+// hop size between each chunk for the FFT
+#define EQUALIZER_HOP_SIZE 512
+
+
+Equalizer::Equalizer() : Equalizer(0, 0, 0) {}
+
+Equalizer::Equalizer(float low, float mid, float high) :
+	lowMult(low), midMult(mid), highMult(high) {
 	// checking FFTW works
 
 	fftw_complex *in, *out;

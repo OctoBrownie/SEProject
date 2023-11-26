@@ -3,23 +3,32 @@
 
 #include<fftw3.h>
 
+/**
+ * Handles equalizing audio data for playback on the fly.
+ */
 class Equalizer {
 private:
-	float EQUALIZER_MAX_MULT = 5;
+	// multiplier for each frequency band
 	float lowMult, midMult, highMult;
 
+	const fftw_plan *fft, *ifft;
+
 public:
+	// default equalizer constructor
 	Equalizer();
 	Equalizer(float low, float mid, float high);
 
-	float getLowMult() { return lowMult; }
+	float getLowMult() const { return lowMult; }
 	void setLowMult(float f);
 
-	float getMidMult() { return midMult; }
+	float getMidMult() const { return midMult; }
 	void setMidMult(float f);
 
-	float getHighMult() { return highMult; }
+	float getHighMult() const { return highMult; }
 	void setHighMult(float f);
+
+	void equalize();
+	void flushBuffer();
 };
 
 #endif // EQUALIZER_H

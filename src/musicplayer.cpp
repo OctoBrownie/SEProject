@@ -21,6 +21,11 @@ extern "C" {
 
 #include "musicplayer.h"
 
+
+#define DEFAULT_BUFFER_SIZE 4096
+
+
+
 MusicPlayer::MusicPlayer(QWidget *parent) : QWidget{parent} {
 	currFormatCtx = nullptr;
 	currCodec = nullptr;
