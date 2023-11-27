@@ -9,7 +9,9 @@
 #include "playlist.h"
 
 //Playlist constructor
-Playlist::Playlist(QObject* parent) : QObject(parent) {}
+Playlist::Playlist(QObject* parent) : QObject(parent) {
+	songsListGUI = nullptr;
+}
 
 Playlist* Playlist::createPlaylist(QString filename, QObject* parent) {
 	Playlist* playlist = new Playlist(parent);
@@ -71,7 +73,7 @@ Playlist* Playlist::createPlaylist(QString filename, QObject* parent) {
 
 Playlist::~Playlist() {
 	// will automatically delete songsListLayout too
-	delete songsListGUI;
+	if (songsListGUI != nullptr) delete songsListGUI;
 }
 
 
