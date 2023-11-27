@@ -15,52 +15,61 @@
 #include "song.h"
 
 //Take in the QString path to a song. This input can be changed at anytime.
-Song::Song(QString path): QWidget()
-{
-    this->songPath = path;
+Song* Song::createSong(QString path, QWidget* parent) {
+	Song* song = new Song(parent);
+	song->songPath = path;
 
-    //Open the file path, by turning the QString into a char*
-    TagLib::MPEG::File file(path.toStdString().c_str());
+	//Open the file path, by turning the QString into a char*
+	TagLib::MPEG::File file(path.toStdString().c_str());
 
-    //If a valid file (MP3 v2, the standard since 2000), continue.
-    if (file.hasID3v2Tag()) {
-        //Create a tag (a special object holding all the data)
-        TagLib::ID3v2::Tag *tag = file.ID3v2Tag();
+	//If a valid file (MP3 v2, the standard since 2000), continue.
+	if (file.isValid() && file.hasID3v2Tag()) {
+		//Create a tag (a special object holding all the data)
+		TagLib::ID3v2::Tag *tag = file.ID3v2Tag();
 
-        //Get title, artists, album, and duration. TagLib only returns StdStrings, and tag->title() needs to be reformatted into becoming a std::String
-        this->title = QString::fromStdString(tag->title().to8Bit(true));
-        this->artists = QString::fromStdString(tag->artist().to8Bit(true));
-        this->album = QString::fromStdString(tag->album().to8Bit(true));
-        this->duration = file.audioProperties()->lengthInSeconds();
+		//Get title, artists, album, and duration. TagLib only returns StdStrings, and tag->title() needs to be reformatted into becoming a std::String
+		song->title = QString::fromStdString(tag->title().to8Bit(true));
+		song->artists = QString::fromStdString(tag->artist().to8Bit(true));
+		song->album = QString::fromStdString(tag->album().to8Bit(true));
+		song->duration = file.audioProperties()->lengthInSeconds();
 
-        //Attempt to see if the associated image exists.
-        TagLib::ID3v2::FrameList frameList = tag->frameList("APIC");
+		//Attempt to see if the associated image exists.
+		TagLib::ID3v2::FrameList frameList = tag->frameList("APIC");
 
-        //If this image is accessible
-        if (!frameList.isEmpty()) {
-            //Turn into an image.
-            TagLib::ID3v2::AttachedPictureFrame *pictureFrame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frameList.front());
+		//If this image is accessible
+		if (!frameList.isEmpty()) {
+			//Turn into an image.
+			TagLib::ID3v2::AttachedPictureFrame *pictureFrame = dynamic_cast<TagLib::ID3v2::AttachedPictureFrame*>(frameList.front());
 
-            //If image successful,
-            if (pictureFrame) {
-                //Save and create the album art
-                QImage albumArt;
-                albumArt.loadFromData(reinterpret_cast<const uchar*>(pictureFrame->picture().data()), pictureFrame->picture().size());
-                this->albumArt = albumArt;
-            }
-        }
-    }
+			//If image successful,
+			if (pictureFrame) {
+				//Save and create the album art
+				QImage albumArt;
+				albumArt.loadFromData(reinterpret_cast<const uchar*>(pictureFrame->picture().data()), pictureFrame->picture().size());
+				song->albumArt = albumArt;
+			}
+		}
+	}
+	else {
+		// file doesn't exist or was invalid
+		delete song;
+		return nullptr;
+	}
 
-    //Create the widget that represents the song object, and save to this->widget
-    makeLayout();
+	//Create the widget that represents the song object, and save to this->widget
+	song->makeLayout();
 
-    //Set the layout and add a widget to this layout.
-    QVBoxLayout* layout = new QVBoxLayout();
-    layout->addWidget(this->widget);
+	//Set the layout and add a widget to this layout.
+	QVBoxLayout* layout = new QVBoxLayout();
+	layout->addWidget(song->widget);
 
-    //Set the layout of the song Widget to this new layout, so it stores it's GUI element.
-    this->setLayout(layout);
+	//Set the layout of the song Widget to this new layout, so it stores it's GUI element.
+	song->setLayout(layout);
+
+	return song;
 }
+
+Song::Song(QWidget* parent): QWidget(parent) {}
 
 
 
@@ -182,7 +191,7 @@ void Song::makeLayout() {
     QPushButton* downButton = new QPushButton();
 
     //Set the icons
-    const QIcon upIcon(":/resources/icons/UpImage.png");
+	const QIcon upIcon(":/resources/icons/UpImage.png");
     const QIcon downIcon(":/resources/icons/DownImage.png");
 
     //Set the buttons to have the icons and the fixed widths and heights

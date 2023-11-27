@@ -9,8 +9,69 @@
 #include "playlist.h"
 
 //Playlist constructor
-Playlist::Playlist(QString filename) {
-    this->processPlaylist(filename);
+Playlist::Playlist(QObject* parent) : QObject(parent) {}
+
+Playlist* Playlist::createPlaylist(QString filename, QObject* parent) {
+	Playlist* playlist = new Playlist(parent);
+
+	if (filename == nullptr) return playlist;
+
+	//Open file
+	QFile* file = new QFile(filename);
+	if (!file->open(QIODevice::ReadOnly | QIODevice::Text)) {
+		// TODO: error handling. Raise an alert and exit?
+		delete playlist;
+		return nullptr;
+	}
+
+	//Read through the file
+	QTextStream input(file);
+
+	//Set the playlist data from the file
+	playlist->openedPlaylist = filename;
+	playlist->playlistName = input.readLine();
+	playlist->userName = input.readLine();
+	playlist->duration = input.readLine().toInt();
+	playlist->imagePath = input.readLine();
+	playlist->playlistImage = QImage(playlist->imagePath);
+
+	//Go through the file
+	qint64 position = 0;
+	while (!input.atEnd()) {
+		//Read the line,
+		QString songPath = input.readLine();
+
+		//Init the song
+		Song* newSong = Song::createSong(songPath);
+		if (newSong == nullptr) {
+			// invalid song, skip it
+			continue;
+		}
+
+		//Set the position of the song in the playlist
+		newSong->setPosition(position);
+
+		//Add to the vector and increase position
+		playlist->allSongs.append(newSong);
+		position++;
+
+		//Connect the selectedSong signal from Song, so that when the signal is sent, the playlist will set the selected song to the value in the signal (the value of the song in the playlist)
+		connect(newSong, &Song::selectedSong, playlist, &Playlist::setSelectedSong);
+
+		//Connect to the button clicked signal, to determine when the up or down button is clicked.
+		connect(newSong, &Song::buttonClicked, playlist, &Playlist::moveSong);
+	}
+
+	file->close();
+
+	//Create the GUI elements
+	playlist->createPlaylistOutput();
+	return playlist;
+}
+
+Playlist::~Playlist() {
+	// will automatically delete songsListLayout too
+	delete songsListGUI;
 }
 
 
@@ -38,6 +99,8 @@ void Playlist::savePlaylist(QString* filename) {
 
 //Add a song to a playlist
 void Playlist::addSong(Song* newSong) {
+	if (newSong == nullptr) return;
+
     //Set position to the last element.
     newSong->setPosition(this->allSongs.length());
     //Add to the vector
@@ -50,7 +113,7 @@ void Playlist::addSong(Song* newSong) {
     this->songsListLayout->addWidget(newSong);
 
     //Update the duration label in the textmetadata class
-    this->textData->updateDurationLabel(this->duration);
+	this->textData->updateDurationLabel(this->duration);
 
     //Connect with the selected song signal, so when a song is selected, the playlist can determine which one.
     connect(newSong, &Song::selectedSong, this, &Playlist::setSelectedSong);
@@ -61,8 +124,8 @@ void Playlist::addSong(Song* newSong) {
 
 //Remove a song
 void Playlist::removeSong(qint64 position) {
-    //Invalid range, prevents removal
-    if (position >= allSongs.length()) {
+	//Invalid range, prevents removal
+	if (position < 0 || position >= allSongs.length()) {
         return;
     }
 
@@ -187,58 +250,6 @@ qint64 Playlist::getDuration() {
 
 */
 
-//Process the playlist from a file
-void Playlist::processPlaylist(QString filename) {
-    //Open file
-    QFile* file = new QFile(filename);
-    if (!file->open(QIODevice::ReadOnly | QIODevice::Text)) {
-		// TODO: error handling. Raise an alert and exit?
-		valid = false;
-        return;
-    }
-
-    //Read through the file
-    QTextStream input(file);
-
-    //Set the playlist data from the file
-    this->openedPlaylist = filename;
-    this->playlistName = input.readLine();
-    this->userName = input.readLine();
-    this->duration = input.readLine().toInt();
-    this->imagePath = input.readLine();
-	this->playlistImage = QImage(this->imagePath);
-
-    //Go through the file
-    qint64 position = 0;
-    while (!input.atEnd()) {
-        //Read the line,
-        QString songPath = input.readLine();
-
-        //Init the song
-        Song* newSong = new Song(songPath);
-
-        //Set the position of the song in the playlist
-        newSong->setPosition(position);
-
-        //Add to the vector and increase position
-        this->allSongs.append(newSong);
-        position++;
-
-		//Connect the selectedSong signal from Song, so that when the signal is sent, the playlist will set the selected song to the value in the signal (the value of the song in the playlist)
-        connect(newSong, &Song::selectedSong, this, &Playlist::setSelectedSong);
-
-		//Connect to the button clicked signal, to determine when the up or down button is clicked.
-        connect(newSong, &Song::buttonClicked, this, &Playlist::moveSong);
-    }
-
-    file->close();
-
-    //Create the GUI elements
-    createPlaylistOutput();
-
-	valid = true;
-}
-
 
 //Turn the playlist information into a GUI
 void Playlist::createPlaylistOutput() {
@@ -264,7 +275,6 @@ void Playlist::createPlaylistOutput() {
     songsListWidget->setLayout(songsListLayout);
 
     this->songsListLayout = songsListLayout;
-
     this->songsListGUI = songsListWidget;
 }
 

@@ -16,17 +16,23 @@
 #include "interface.h"
 #include "picturebox.h"
 #include "textmetadata.h"
-#include "applicationbuttons.h"
-#include "editingbuttons.h"
 #include "mediaplayer.h"
 #include "song.h"
 #include "playlist.h"
-#include "editingbuttons.h"
 
 
 
 int main(int argc, char **argv) {
     QApplication app (argc, argv);
+
+	// Playlist creation
+//	QString playPath = QString("C:/Users/astro/Desktop/MyPlaylist.pa");
+	QString playPath = QString("./invalid/file.pa");
+	Playlist* myPlaylist = Playlist::createPlaylist(playPath);
+	if (myPlaylist == nullptr) {
+		std::cerr << "And you thought you'd be able to easily run everything on startup?! Here, have an invalid file." << std::endl;
+		return 1;
+	}
 
     // The layout of the editor portion of the layout application
     QVBoxLayout* playlistEditor = new QVBoxLayout;
@@ -38,7 +44,7 @@ int main(int argc, char **argv) {
 
     QVBoxLayout* MP3ViewerLayout = new QVBoxLayout();
 	// Buttons that provide central functionality to the application
-	QHBoxLayout* applicationButtons = Interface::createMainToolbar();
+	QHBoxLayout* applicationButtons = Interface::createMainToolbar(myPlaylist);
 
     MediaPlayer* player = new MediaPlayer();
     QSpacerItem* spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
@@ -52,31 +58,22 @@ int main(int argc, char **argv) {
     window->setLayout(MP3Viewer);
 
 
-//	QString playPath = QString("C:/Users/astro/Desktop/MyPlaylist.pa");
-	QString playPath = QString("./invalid/file.pa");
-    Playlist myPlaylist = Playlist(playPath);
-	if (!myPlaylist.isValid()) {
-		std::cerr << "And you thought you'd be able to easily run everything on startup?! Here, have an invalid file." << std::endl;
-		return 1;
-	}
-
-
 
     //This box holds the image and the text (title, user, and duration)
     QHBoxLayout* metadataHolder = new QHBoxLayout;
-    // The picture data and the text data in the UI
-    PictureBox* photoData = myPlaylist.getPictureBox();
-    TextMetadata* textData = myPlaylist.getTextMetadata();
+	// The picture data and the text data in the UI
+	PictureBox* photoData = myPlaylist->getPictureBox();
+	TextMetadata* textData = myPlaylist->getTextMetadata();
     // Add data to the holder component
     metadataHolder->addLayout(photoData);
     metadataHolder->addLayout(textData);
 
 	// These are the buttons that allow playlist editing
-	QHBoxLayout* playlistEditorButtons = Interface::createPlaylistToolbar();
+	QHBoxLayout* playlistEditorButtons = Interface::createPlaylistToolbar(myPlaylist);
 
     //This is the scrollable list of the songs in the playlist.
     QScrollArea* songsList = new QScrollArea;
-    songsList->setWidget(myPlaylist.getListGUI());
+	songsList->setWidget(myPlaylist->getListGUI());
 
 
     // Add data to the editor component
@@ -96,12 +93,12 @@ int main(int argc, char **argv) {
 
     mainWindow->show();
 
-    Song* newSong = new Song("C:/Users/astro/Downloads/Fluffing-a-Duck(chosic.com).mp3");
-    myPlaylist.addSong(newSong);
+	Song* newSong = Song::createSong("C:/Users/astro/Downloads/Fluffing-a-Duck(chosic.com).mp3");
+	myPlaylist->addSong(newSong);
     QString* saveFile = new QString("C:/Users/astro/Desktop/SecondPlaylist.pa");
-    myPlaylist.savePlaylist(saveFile);
+	myPlaylist->savePlaylist(saveFile);
 
-    myPlaylist.removeSong(5);
+	myPlaylist->removeSong(5);
 
     return app.exec();
 }

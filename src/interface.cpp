@@ -3,6 +3,7 @@
 #include<QHBoxLayout>
 #include<QPushButton>
 
+#include "playlist.h"
 #include "interface.h"
 
 Interface::Interface(QWidget* centralWidget, QDockWidget* dockedWidget, QWidget* parent)
@@ -13,23 +14,37 @@ Interface::Interface(QWidget* centralWidget, QDockWidget* dockedWidget, QWidget*
     resize(1500, 1000);
 }
 
-QHBoxLayout* Interface::createMainToolbar(QWidget* parent) {
+QHBoxLayout* Interface::createMainToolbar(Playlist* p, QWidget* parent) {
 	QHBoxLayout* toolbar = new QHBoxLayout(parent);
 
-	toolbar->addWidget(new QPushButton("Import Playlist"));
-	toolbar->addWidget(new QPushButton("Save Playlist"));
-	toolbar->addWidget(new QPushButton("Export Playlist"));
-	toolbar->addWidget(new QPushButton("Settings"));
+	QPushButton* b = new QPushButton("Import Playlist");
+	toolbar->addWidget(b);
+
+	b = new QPushButton("Save Playlist");
+	connect(b, SIGNAL (clicked()), p, SLOT (save()));
+	toolbar->addWidget(b);
+
+	b = new QPushButton("Export Playlist");
+	toolbar->addWidget(b);
+
+	b = new QPushButton("Settings");
+	toolbar->addWidget(b);
 
 	return toolbar;
 }
 
-QHBoxLayout* Interface::createPlaylistToolbar(QWidget* parent) {
+QHBoxLayout* Interface::createPlaylistToolbar(Playlist* p, QWidget* parent) {
 	QHBoxLayout* toolbar = new QHBoxLayout(parent);
 
-	toolbar->addWidget(new QPushButton("Add to Playlist"));
-	toolbar->addWidget(new QPushButton("Delete Selected"));
-	toolbar->addWidget(new QPushButton("Search"));
+	QPushButton* b = new QPushButton("Add to Playlist");
+	toolbar->addWidget(b);
+
+	b = new QPushButton("Delete Selected");
+	connect(b, SIGNAL (clicked()), p, SLOT (removeSong()));
+	toolbar->addWidget(b);
+
+	b = new QPushButton("Search");
+	toolbar->addWidget(b);
 
 	return toolbar;
 }

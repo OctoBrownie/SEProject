@@ -8,14 +8,10 @@ class QImage;
 class QPushButton;
 
 //The Song class, inherits from the QWidget class
-class Song: public QWidget
-{
-    //Need this macro to send signals
-    Q_OBJECT
-
+class Song: public QWidget {
 public:
-    //Constructor
-    Song(QString path);
+	// constructor for everyone else
+	static Song* createSong(QString path, QWidget* parent = nullptr);
 
     //Getters
     QString getSongPath();
@@ -35,14 +31,22 @@ public:
     void setSelected(int value);
 
 protected:
+	// need for sending or receiving signals
+	Q_OBJECT
+
+	// constructor
+	Song(QWidget* parent = nullptr);
+
     //Determines what happens when a mouse is pressed on the widget
     void mousePressEvent(QMouseEvent *event) override;
 
-    //Method to create the widget, stored in this widget. The output is stored in the this->widget. This is only done to allow accurate highlighting when selected by a user.
+	// Method to create the song widget (stored in this->widget).
+	// Only done to allow accurate highlighting when selected by a user.
     void makeLayout();
 
 signals:
-    //A signal that is sent out after this widget is clicked on. This tells the playlist what the new selected song position is.
+	//A signal that is sent out after this widget is clicked on. This tells
+	// the playlist what the new selected song position is.
     void selectedSong(int pos);
 
     //A signal that is sent out when one of the buttons (up (1) or down (0)) is clicked, sending the song position and button type.
