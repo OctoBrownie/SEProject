@@ -1,25 +1,42 @@
 #ifndef MEDIAPLAYER_H
 #define MEDIAPLAYER_H
 
-#include<QWidget>
+#include <QWidget>
+#include <QLabel>
+#include "playlist.h"
 
 class QString;
-class QVariant;
 
 class MediaPlayer: public QWidget
 {
 public:
     MediaPlayer(QWidget* parent=nullptr);
 
+    void skip();
+
+    void rewind();
+
+    void setPlaylist(Playlist* playlist);
+
+
+
 protected:
     void swapLoop();
 
+    void generateImage(QImage* songImage);
+
+    void updateCurrentSong(QString songPath, QString title, QString artist, QString album, QImage* songImage);
+
 private:
-    QString* current_song_title;
-    QString* current_song_album;
-    QString* current_song_artist;
-    QVariant* current_song_art;
-    bool isLooped = 0;
+    QString currentSongPath;
+    QLabel* currentSongTitle;
+    QLabel* currentSongAlbum;
+    QLabel* currentSongArtist;
+    QLabel* currentImage;
+    QImage* currentSongArt;
+    bool isLooped = false;
+
+    Playlist* currentPlaylist;
 };
 
 #endif // MEDIAPLAYER_H

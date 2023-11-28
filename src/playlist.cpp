@@ -43,11 +43,11 @@ void Playlist::addSong(Song* newSong) {
     //Add to the vector
     this->allSongs.append(newSong);
 
-    //Update the duration
-    this->duration += newSong->getDuration();
-
     //Add the widget to the end of the layout
     this->songsListLayout->addWidget(newSong);
+
+    //Update the duration
+    this->duration += newSong->getDuration();
 
     //Update the duration label in the textmetadata class
     this->textData->updateDurationLabel(this->duration);
@@ -90,8 +90,8 @@ void Playlist::removeSong(qint64 position) {
 
 
 //Get the selected song; incredibly important for MP3Player interactions
-Song* Playlist::getSelectedSong() {
-    return allSongs[selectedSong];
+qint64 Playlist::getSelectedSong() {
+    return this->selectedSong;
 }
 
 /*
@@ -101,7 +101,11 @@ Song* Playlist::getSelectedSong() {
 */
 
 //Get the position of a song that needs to be selected.
-void Playlist::setSelectedSong(qint64 pos) {
+void Playlist::setSelectedSong(qint64 pos, bool move) {
+    if (pos >= allSongs.length() || pos < 0) {
+        return;
+    }
+
     //If the new selected song is the same as the old selected song, deselect
     if (this->selectedSong == pos) {
         this->selectedSong = -1;
@@ -109,21 +113,30 @@ void Playlist::setSelectedSong(qint64 pos) {
     else {
         //If another song is selected, deselect that song
         if (this->selectedSong != -1) {
-            allSongs[this->selectedSong]->setSelected(0);
+            allSongs[this->selectedSong]->setSelected(false);
         }
 
+        if(allSongs[pos]->getSelected() == false) {
+            allSongs[pos] ->setSelected(true);
+        }
         //Select the new song
         this->selectedSong = pos;
     }
 
-    //Proof of concept and testing
-    qDebug() << "The song " << this->selectedSong << " in the list is selected!!!";
+    if (!move) {
+        if (this->selectedSong == -1) {
+            emit newSelectedSong("", "Title", "Artist", "Album", new QImage());
+        } else {
+            //Proof of concept and testing
+            Song* sendSong = allSongs[this->selectedSong];
+            emit newSelectedSong(sendSong->getSongPath(), sendSong->getSongTitle(), sendSong->getArtist(), sendSong->getAlbum(), sendSong->getArt());
+        }
+    }
 }
 
 
 //Set the image path and image itself, based on the path
-void Playlist::setImage(QString imagePath) {
-    this->playlistImage = QImage(imagePath);
+void Playlist::setImagePath(QString imagePath) {
     this->imagePath = imagePath;
 }
 
@@ -149,8 +162,8 @@ void Playlist::setPlaylistName(QString name) {
 
 
 //Return the playlist image pointer; used in picturebox
-QImage* Playlist::getImage() {
-    return &this->playlistImage;
+QString Playlist::getImagePath() {
+    return this->imagePath;
 }
 
 
@@ -189,62 +202,66 @@ qint64 Playlist::getDuration() {
 
 //Process the playlist from a file
 void Playlist::processPlaylist(QString filename) {
+
     //Open file
     QFile* file = new QFile(filename);
-    if (!file->open(QIODevice::ReadOnly | QIODevice::Text)) {
-		// TODO: error handling. Raise an alert and exit?
-		valid = false;
-        return;
+
+    if (file->open(QIODevice::ReadOnly | QIODevice::Text)) {
+        //Read through the file
+        QTextStream input(file);
+
+        //Set the playlist data from the file
+        this->openedPlaylist = filename;
+        this->playlistName = input.readLine();
+        this->userName = input.readLine();
+        this->duration = input.readLine().toInt();
+        this->imagePath = input.readLine();
+
+        //Go through the file
+        qint64 position = 0;
+        while (!input.atEnd()) {
+            //Read the line,
+            QString songPath = input.readLine();
+
+            //Init the song
+            Song* newSong = new Song(songPath);
+
+            //Set the position of the song in the playlist
+            newSong->setPosition(position);
+
+            //Add to the vector and increase position
+            this->allSongs.append(newSong);
+            position++;
+
+            //Connect the selectedSong signal from Song, so that when the signal is sent, the playlist will set the selected song to the value in the signal (the value of the song in the playlist)
+            connect(newSong, &Song::selectedSong, this, &Playlist::setSelectedSong);
+
+            //Connect to the button clicked signal, to determine when the up or down button is clicked.
+            connect(newSong, &Song::buttonClicked, this, &Playlist::moveSong);
+        }
     }
-
-    //Read through the file
-    QTextStream input(file);
-
-    //Set the playlist data from the file
-    this->openedPlaylist = filename;
-    this->playlistName = input.readLine();
-    this->userName = input.readLine();
-    this->duration = input.readLine().toInt();
-    this->imagePath = input.readLine();
-	this->playlistImage = QImage(this->imagePath);
-
-    //Go through the file
-    qint64 position = 0;
-    while (!input.atEnd()) {
-        //Read the line,
-        QString songPath = input.readLine();
-
-        //Init the song
-        Song* newSong = new Song(songPath);
-
-        //Set the position of the song in the playlist
-        newSong->setPosition(position);
-
-        //Add to the vector and increase position
-        this->allSongs.append(newSong);
-        position++;
-
-		//Connect the selectedSong signal from Song, so that when the signal is sent, the playlist will set the selected song to the value in the signal (the value of the song in the playlist)
-        connect(newSong, &Song::selectedSong, this, &Playlist::setSelectedSong);
-
-		//Connect to the button clicked signal, to determine when the up or down button is clicked.
-        connect(newSong, &Song::buttonClicked, this, &Playlist::moveSong);
+    else {
+        this->openedPlaylist = filename;
+        this->playlistName = NULL;
+        this->userName = NULL;
+        this->duration = 0;
+        this->imagePath = NULL;
     }
 
     file->close();
 
     //Create the GUI elements
     createPlaylistOutput();
-
-	valid = true;
 }
 
 
 //Turn the playlist information into a GUI
 void Playlist::createPlaylistOutput() {
 
-    // The picture data and the text data in the UI. Messy, need to fix
-    this->playlistImageBox = new PictureBox(this->getImage());
+    // The picture data and the text data in the UI.
+    this->playlistImageBox = new PictureBox(this->getImagePath());
+    connect(this->playlistImageBox, &PictureBox::newImagePath, this, &Playlist::setImagePath);
+
     this->textData = new TextMetadata(this->playlistName, this->userName, this->duration);
 
     //When the playlist title and username are edited in the TextMetadata GUI, they are also updated in the playlist.
@@ -253,7 +270,9 @@ void Playlist::createPlaylistOutput() {
 
     //Songs list layout and widget
     QWidget* songsListWidget = new QWidget();
+    songsListWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     QVBoxLayout* songsListLayout = new QVBoxLayout();
+    songsListLayout->setAlignment(Qt::AlignTop);
 
     //For all songs in the playlist, add the widget to the layout
     for(int i =0; i < allSongs.length(); i++) {
@@ -301,9 +320,9 @@ void Playlist::moveSong(int pos, int status) {
 
             //Maintain the proper selected song; check if any of the swapped songs were the selected song, and if any of them were, swap the selectedSong
             if (this->selectedSong == pos) {
-                this->setSelectedSong(pos - 1);
+                this->setSelectedSong(pos - 1, true);
             } else if (this->selectedSong == pos - 1) {
-                this->setSelectedSong(pos);
+                this->setSelectedSong(pos, true);
             }
 
             //Remove both widgets from the layout
@@ -330,9 +349,9 @@ void Playlist::moveSong(int pos, int status) {
 
             //Maintain the proper selected song; check if any of the swapped songs were the selected song, and if any of them were, swap the selectedSong
             if (this->selectedSong == pos) {
-                this->setSelectedSong(pos + 1);
+                this->setSelectedSong(pos + 1, true);
             } else if (this->selectedSong == pos + 1) {
-                this->setSelectedSong(pos);
+                this->setSelectedSong(pos, true);
             }
 
             //Remove both widgets from the layout

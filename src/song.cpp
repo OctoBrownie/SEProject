@@ -60,6 +60,7 @@ Song::Song(QString path): QWidget()
 
     //Set the layout of the song Widget to this new layout, so it stores it's GUI element.
     this->setLayout(layout);
+    this->setFixedHeight(150);
 }
 
 
@@ -82,8 +83,8 @@ QString Song::getAlbum() {
     return this->album;
 }
 
-QImage Song::getArt() {
-    return this->albumArt;
+QImage* Song::getArt() {
+    return &this->albumArt;
 }
 
 QString Song::getSongPath() {
@@ -106,6 +107,10 @@ QPushButton* Song::getDownButton() {
     return this->downButton;
 }
 
+bool Song::getSelected() {
+    return this->selected;
+}
+
 
 
 /*
@@ -121,11 +126,11 @@ void Song::setPosition(qint64 newPosition) {
 }
 
 //Set the value of the selected variable of the song, based on whether it is clicked or not.
-void Song::setSelected(int value) {
-    this->selected = value;
+void Song::setSelected(bool selected) {
+    this->selected = selected;
 
     // Set background color for the entire widget and its child widgets
-    QString backgroundColor = (this->selected == 1) ? "#73b2e4" : "#F0F0F0";
+    QString backgroundColor = (this->selected == true) ? "#73b2e4" : "#F0F0F0";
     this->widget->setStyleSheet(QString("background-color: %1").arg(backgroundColor));
 }
 
@@ -229,13 +234,13 @@ void Song::makeLayout() {
 //What to do when the mouse is clicked
 void Song::mousePressEvent(QMouseEvent *event) {
     //If the Song is already selected, unselect it, and emit a signal to tell the playlist that it no longer has a selected song. Send the position of the song, so the playlist knows what to do.
-    if (this->selected == 1) {
-        this->setSelected(0);
-        emit selectedSong(this->pPosition);
+    if (this->selected == true) {
+        this->setSelected(false);
+        emit selectedSong(this->pPosition, false);
 
     //If the Song is not already selected, select it, and emit a signal to tell the playlist to select this song instead. Send the position of the song, so the playlist knows what to do.
     } else {
-        this->setSelected(1);
-        emit selectedSong(this->pPosition);
+        this->setSelected(true);
+        emit selectedSong(this->pPosition, false);
     }
 }

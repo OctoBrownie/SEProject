@@ -4,10 +4,13 @@
 #include "picturebox.h"
 #include "textmetadata.h"
 #include "song.h"
+#include <QLabel>
 
 
 //Playlist class
 class Playlist: public QObject {
+    Q_OBJECT
+
 public:
     //Constructor
     Playlist(QString filename=nullptr);
@@ -24,29 +27,30 @@ public:
     //Remove a song from a playlist, based on a specific position
     void removeSong(qint64 position);
 
-    //Return the currently selected song; technically a getter but really important
-    Song* getSelectedSong();
-
-	//Checks whether this is a valid playlist or not
-	bool isValid() { return valid; }
+    //Return the currently selected song number
+    qint64 getSelectedSong();
 
     //Setters
-    void setImage(QString imagePath);
+    void setImagePath(QString imagePath);
     void setUserName(QString name);
     void setPlaylistName(QString name);
-    void setSelectedSong(qint64 pos);
+    void setSelectedSong(qint64 pos, bool move);
 
 
     //Getters
-    QImage* getImage();
     QString getUserName();
     QString getPlaylistName();
     qint64 getDuration();
+    QString getImagePath();
 
     PictureBox* getPictureBox();
     TextMetadata* getTextMetadata();
     QWidget* getListGUI();
 
+    QVBoxLayout* getLayout() { return this->songsListLayout;};
+
+signals:
+    void newSelectedSong(QString songPath, QString title, QString artist, QString album, QImage* songImage);
 
 protected:
     //Turn the playlist data into a GUI output
@@ -62,9 +66,6 @@ protected:
     void moveSong(int pos, int status);
 
 
-	// whether the playlist as a whole is valid or not (set in processPlaylist(QString))
-	bool valid;
-
     //Playlist path
     QString openedPlaylist;
 
@@ -75,7 +76,6 @@ protected:
 
     //Image data
     QString imagePath;
-    QImage playlistImage;
 
     //Vector of all the songs
     QVector<Song*> allSongs;
