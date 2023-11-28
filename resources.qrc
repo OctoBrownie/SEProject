@@ -1,7 +1,5 @@
 <RCC>
     <qresource prefix="/">
-        <file>images/DefaultMusicImage.png</file>
-        <file>images/NoPlaylistImage.png</file>
         <file>icons/play.svg</file>
         <file>icons/back.svg</file>
         <file>icons/down button.svg</file>
@@ -12,5 +10,7 @@
         <file>icons/skip.svg</file>
         <file>icons/up button.svg</file>
         <file>icons/settings.svg</file>
+        <file>images/noAlbumArt.svg</file>
+        <file>images/noPlaylist.svg</file>
     </qresource>
 </RCC>

@@ -53,16 +53,31 @@ App::~App() {
 
 QWidget* App::createTopBar(QWidget* parent) {
 	QWidget* bar = new QWidget(parent);
-	bar->setSizePolicy(QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Maximum));
 	bar->setStyleSheet(QString("background:#fcc;"));
+
+	QSizePolicy policy = QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+	policy.setVerticalStretch(1);
+	bar->setSizePolicy(policy);
 
 	QHBoxLayout* layout = new QHBoxLayout(bar);
 	layout->setSpacing(0);
+	layout->setContentsMargins(0, 0, 0, 0);
 
-	QPushButton* backButton = new QPushButton(bar);
-	backButton->setIcon(QIcon(":/icons/back.svg"));
-	layout->addWidget(backButton);
-	// TODO: make button not pressable (or HIDDEN) if there's no previous to go back to
+	// size policy for buttons
+	policy = QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+	policy.setVerticalStretch(1);
+
+	// back button
+	QPushButton* b = new QPushButton(bar);
+	b->setIcon(QIcon(":/icons/back.svg"));
+	b->setSizePolicy(policy);
+	layout->addWidget(b);
+	connect(b, SIGNAL (clicked()), this, SLOT (goBack()));
+	// TODO: make button keep aspect ratio and scale based on available space
+	// see https://stackoverflow.com/questions/42833511/qt-how-to-create-image-that-scale-with-window-and-keeps-aspect-ratio
+	// or https://stackoverflow.com/questions/8211982/qt-resizing-a-qlabel-containing-a-qpixmap-while-keeping-its-aspect-ratio
+
+	// TODO: make button not pressable (or hidden) if there's no previous to go back to
 
 	QLineEdit* search = new QLineEdit(bar);
 	search->setPlaceholderText("Search library");
@@ -70,9 +85,11 @@ QWidget* App::createTopBar(QWidget* parent) {
 	layout->addWidget(search);
 	// TODO: register with the returnPressed signal
 
-	QPushButton* settingsButton = new QPushButton(bar);
-	settingsButton->setIcon(QIcon(":/icons/settings.svg"));
-	layout->addWidget(settingsButton);
+	// settings button
+	b = new QPushButton(bar);
+	b->setIcon(QIcon(":/icons/settings.svg"));
+	b->setSizePolicy(policy);
+	layout->addWidget(b);
 	// TODO: open settings from this button
 
 	return bar;
@@ -87,10 +104,43 @@ QWidget* App::createPlayBar(QWidget* parent) {
 	bar->setSizePolicy(policy);
 
 	QHBoxLayout* layout = new QHBoxLayout(bar);
-	layout->setSpacing(0);
+	layout->setContentsMargins(0, 0, 0, 0);
+//	layout->setSpacing(0);
 
-	layout->addWidget(new QLabel("play bar"));
-	layout->addWidget(new QLabel("playing..."));
+	// TODO: connect this stuff to a signal from music player
+	QLabel* art = new QLabel(bar);
+	QSize changedSize(100,100);
+	QPixmap defaultImage(":/images/noAlbumArt.svg");
+	QPixmap map = defaultImage.scaled(changedSize, Qt::KeepAspectRatio);
+	art->setPixmap(map);
+	layout->addWidget(art);
+
+	QLabel* songName = new QLabel("artist - song", bar);
+	layout->addWidget(songName);
+	layout->addStretch();
+
+	// size policy for buttons
+	policy = QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+	policy.setVerticalStretch(1);
+
+	// rewind button
+	QPushButton* b = new QPushButton(bar);
+	b->setIcon(QIcon(":/icons/rewind.svg"));
+	b->setSizePolicy(policy);
+	layout->addWidget(b);
+
+	// play/pause button
+	// TODO: swap play/pause icons
+	b = new QPushButton(bar);
+	b->setIcon(QIcon(":/icons/play.svg"));
+	b->setSizePolicy(policy);
+	layout->addWidget(b);
+
+	// skip button
+	b = new QPushButton(bar);
+	b->setIcon(QIcon(":/icons/skip.svg"));
+	b->setSizePolicy(policy);
+	layout->addWidget(b);
 
 	return bar;
 }
@@ -151,6 +201,8 @@ bool App::addMainWidget(QWidget* mainWidget, bool keepStack) {
 	QSizePolicy policy = mainWidget->sizePolicy();
 	policy.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
 	policy.setVerticalPolicy(QSizePolicy::MinimumExpanding);
+	policy.setVerticalStretch(10);
+	mainWidget->setSizePolicy(policy);
 
 	if (keepStack && this->currMainWidget != nullptr) {
 		// push the previous main widget onto the stack
@@ -178,6 +230,13 @@ bool App::addMainWidget(QWidget* mainWidget, bool keepStack) {
 }
 
 void App::goBack() {
+	if (mainWidgetStack->isEmpty()) return;
+
+	mainLayout->removeWidget(this->currMainWidget);
+	delete this->currMainWidget;
+
+	this->currMainWidget = mainWidgetStack->pop();
+	this->currMainWidget->show();
 }
 
 

@@ -27,7 +27,7 @@ CustomSongWidget::CustomSongWidget(Song* song): QWidget() {
 	if (!song->getArt()->isNull()) {
 		map = QPixmap::fromImage(*song->getArt()).scaled(changedSize, Qt::KeepAspectRatio);
 	} else {
-		QPixmap defaultImage(":/images/DefaultMusicImage.png");
+		QPixmap defaultImage(":/images/noAlbumArt.svg");
 		map = defaultImage.scaled(changedSize, Qt::KeepAspectRatio);
 	}
 	art->setPixmap(map);
