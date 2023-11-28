@@ -6,8 +6,7 @@
 #include "customsongwidget.h"
 #include "song.h"
 
-CustomSongWidget::CustomSongWidget(Song* song): QWidget()
-{
+CustomSongWidget::CustomSongWidget(Song* song): QWidget() {
 	QHBoxLayout* outerLayout = new QHBoxLayout();
 	QVBoxLayout* innerLayout = new QVBoxLayout();
 	QLabel* titleText = new QLabel(song->getSongTitle());
@@ -15,6 +14,7 @@ CustomSongWidget::CustomSongWidget(Song* song): QWidget()
 	QLabel* albumTest = new QLabel(song->getAlbum());
 
 	this->fromSong = song;
+	this->selected = false;
 
 	innerLayout->addWidget(titleText);
 	innerLayout->addWidget(artistText);
@@ -27,7 +27,7 @@ CustomSongWidget::CustomSongWidget(Song* song): QWidget()
 	if (!song->getArt()->isNull()) {
 		map = QPixmap::fromImage(*song->getArt()).scaled(changedSize, Qt::KeepAspectRatio);
 	} else {
-		QPixmap defaultImage(":/resources/images/DefaultMusicImage.png");
+		QPixmap defaultImage(":/images/DefaultMusicImage.png");
 		map = defaultImage.scaled(changedSize, Qt::KeepAspectRatio);
 	}
 	art->setPixmap(map);
@@ -42,19 +42,13 @@ CustomSongWidget::CustomSongWidget(Song* song): QWidget()
 }
 
 void CustomSongWidget::mousePressEvent(QMouseEvent *event) {
-	if (this->selected == 1) {
-		fromSong->setSelected(0);
-	} else {
-		fromSong->setSelected(1);
-	}
+	fromSong->setSelected(!this->selected);
 }
 
 
 void CustomSongWidget::setBackground(int value) {
-	if (value == 1)
-		setStyleSheet("background-color:#73b2e4");
-	else
-		setStyleSheet("background-color: #F0F0F0");
+	if (value == 1) setStyleSheet("background-color:#73b2e4");
+	else setStyleSheet("background-color: #F0F0F0");
 
 	this->selected = value;
 }

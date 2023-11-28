@@ -18,7 +18,7 @@ int main(int argc, char** argv) {
     QApplication app(argc, argv);
 
 	App a;
-    a.show();
+	a.show();
 
 	int res = app.exec();	// app event loop
 

@@ -15,7 +15,7 @@ protected:
 	void mousePressEvent(QMouseEvent *event) override;
 
 private:
-	int selected = 0;
+	bool selected;
 	Song* fromSong;
 };
 
