@@ -13,11 +13,11 @@
 
 #include<iostream>
 
+#include "settingswindow.h"
 #include "interface.h"
 #include "picturebox.h"
 #include "textmetadata.h"
 #include "mediaplayer.h"
-#include "song.h"
 #include "playlist.h"
 
 
@@ -27,7 +27,8 @@ int main(int argc, char **argv) {
 
 	// Playlist creation
 //	QString playPath = QString("C:/Users/astro/Desktop/MyPlaylist.pa");
-	QString playPath = QString("./invalid/file.pa");
+//	QString playPath = QString("./invalid/file.pa");
+	QString playPath = QString("C:/Users/Crystal/Downloads/asdf.pa");
 	Playlist* myPlaylist = Playlist::createPlaylist(playPath);
 	if (myPlaylist == nullptr) {
 		std::cerr << "And you thought you'd be able to easily run everything on startup?! Here, have an invalid file." << std::endl;
@@ -44,7 +45,8 @@ int main(int argc, char **argv) {
 
     QVBoxLayout* MP3ViewerLayout = new QVBoxLayout();
 	// Buttons that provide central functionality to the application
-	QHBoxLayout* applicationButtons = Interface::createMainToolbar(myPlaylist);
+	SettingsWindow* settings = new SettingsWindow();
+	QHBoxLayout* applicationButtons = Interface::createMainToolbar(myPlaylist, settings);
 
     MediaPlayer* player = new MediaPlayer();
     QSpacerItem* spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
@@ -55,9 +57,9 @@ int main(int argc, char **argv) {
     MP3Viewer->addLayout(MP3ViewerLayout);
 
     QWidget *window = new QWidget;
-    window->setLayout(MP3Viewer);
+	window->setLayout(MP3Viewer);
 
-
+	player->setPlaylist(myPlaylist);
 
     //This box holds the image and the text (title, user, and duration)
     QHBoxLayout* metadataHolder = new QHBoxLayout;
@@ -93,13 +95,8 @@ int main(int argc, char **argv) {
 
     mainWindow->show();
 
-	Song* newSong = Song::createSong("C:/Users/astro/Downloads/Fluffing-a-Duck(chosic.com).mp3");
-	myPlaylist->addSong(newSong);
-    QString* saveFile = new QString("C:/Users/astro/Desktop/SecondPlaylist.pa");
+	QString* saveFile = new QString("C:/Users/astro/Desktop/SecondPlaylist.pa");
 	myPlaylist->savePlaylist(saveFile);
-
-	myPlaylist->removeSong(5);
 
     return app.exec();
 }
-

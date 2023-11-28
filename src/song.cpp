@@ -65,6 +65,7 @@ Song* Song::createSong(QString path, QWidget* parent) {
 
 	//Set the layout of the song Widget to this new layout, so it stores it's GUI element.
 	song->setLayout(layout);
+	// song->setFixedHeight(150);
 
 	return song;
 }
@@ -91,8 +92,8 @@ QString Song::getAlbum() {
     return this->album;
 }
 
-QImage Song::getArt() {
-    return this->albumArt;
+QImage* Song::getArt() {
+	return &this->albumArt;
 }
 
 QString Song::getSongPath() {
@@ -130,7 +131,7 @@ void Song::setPosition(qint64 newPosition) {
 }
 
 //Set the value of the selected variable of the song, based on whether it is clicked or not.
-void Song::setSelected(int value) {
+void Song::setSelected(bool value) {
     this->selected = value;
 
     // Set background color for the entire widget and its child widgets
@@ -149,102 +150,100 @@ void Song::setSelected(int value) {
 
 //Make the layout; Used to set the layout of this widget
 void Song::makeLayout() {
-    //Create the outer layout (has two halves; image on the left, text on the right)
-    QHBoxLayout* outerLayout = new QHBoxLayout();
+	//Create the outer layout (has two halves; image on the left, text on the right)
+	QHBoxLayout* outerLayout = new QHBoxLayout();
 
-    //Create the inner layout (has three levels, title, artist, album, text, going from top to bottom)
-    QVBoxLayout* innerLayout = new QVBoxLayout();
+	//Create the inner layout (has three levels, title, artist, album, text, going from top to bottom)
+	QVBoxLayout* innerLayout = new QVBoxLayout();
 
-    QLabel* titleText = new QLabel(this->title);
-    QLabel* artistText = new QLabel(this->artists);
-    QLabel* albumTest = new QLabel(this->album);
+	QLabel* titleText = new QLabel(this->title);
+	QLabel* artistText = new QLabel(this->artists);
+	QLabel* albumTest = new QLabel(this->album);
 
-    //Add all of the widgets to the vertical, internal layout
-    innerLayout->addWidget(titleText);
-    innerLayout->addWidget(artistText);
-    innerLayout->addWidget(albumTest);
+	//Add all of the widgets to the vertical, internal layout
+	innerLayout->addWidget(titleText);
+	innerLayout->addWidget(artistText);
+	innerLayout->addWidget(albumTest);
 
-    //Create the label and set size
-    QLabel* art = new QLabel();
-    QSize changedSize(100,100);
-    QPixmap map;
+	//Create the label and set size
+	QLabel* art = new QLabel();
+	QSize changedSize(100,100);
+	QPixmap map;
 
-    //If the this->albumArt exists, the MP3 stores an image, then get the PixMap from the Image
-    if (!this->albumArt.isNull()) {
-        map = QPixmap::fromImage(this->albumArt).scaled(changedSize, Qt::KeepAspectRatio);
-    } else {
-        //Use the default image, which is stored in the resources
-        QPixmap defaultImage(":/resources/images/DefaultMusicImage.png");
-        map = defaultImage.scaled(changedSize, Qt::KeepAspectRatio);
-    }
+	//If the this->albumArt exists, the MP3 stores an image, then get the PixMap from the Image
+	if (!this->albumArt.isNull()) {
+		map = QPixmap::fromImage(this->albumArt).scaled(changedSize, Qt::KeepAspectRatio);
+	} else {
+		//Use the default image, which is stored in the resources
+		QPixmap defaultImage(":/resources/images/DefaultMusicImage.png");
+		map = defaultImage.scaled(changedSize, Qt::KeepAspectRatio);
+	}
 
-    //Set the QLabel to display the chosen Pixmap
-    art->setPixmap(map);
+	//Set the QLabel to display the chosen Pixmap
+	art->setPixmap(map);
 
-    //Make a spacer
-    QSpacerItem* spacer1 = new QSpacerItem(40, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
-    QSpacerItem* spacer2 = new QSpacerItem(40, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
+	//Make a spacer
+	QSpacerItem* spacer1 = new QSpacerItem(40, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
+	QSpacerItem* spacer2 = new QSpacerItem(40, 40, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
-    //Make the two movement button
-    QVBoxLayout* buttons = new QVBoxLayout();
-    QPushButton* upButton = new QPushButton();
-    QPushButton* downButton = new QPushButton();
+	//Make the two movement button
+	QVBoxLayout* buttons = new QVBoxLayout();
+	QPushButton* upButton = new QPushButton();
+	QPushButton* downButton = new QPushButton();
 
-    //Set the icons
+	//Set the icons
 	const QIcon upIcon(":/resources/icons/UpImage.png");
-    const QIcon downIcon(":/resources/icons/DownImage.png");
+	const QIcon downIcon(":/resources/icons/DownImage.png");
 
-    //Set the buttons to have the icons and the fixed widths and heights
-    upButton->setIcon(upIcon);
-    upButton->setFixedWidth(100);
-    upButton->setFixedHeight(30);
+	//Set the buttons to have the icons and the fixed widths and heights
+	upButton->setIcon(upIcon);
+	upButton->setFixedWidth(100);
+	upButton->setFixedHeight(30);
 
-    downButton->setIcon(downIcon);
-    downButton->setFixedWidth(100);
-    downButton->setFixedHeight(30);
+	downButton->setIcon(downIcon);
+	downButton->setFixedWidth(100);
+	downButton->setFixedHeight(30);
 
-    //Assign to the stored class value
-    this->upButton = upButton;
-    this->downButton = downButton;
+	//Assign to the stored class value
+	this->upButton = upButton;
+	this->downButton = downButton;
 
-    //Add to the buttons widget, so it is one on top of the other
-    buttons->addWidget(upButton);
-    buttons->addWidget(downButton);
+	//Add to the buttons widget, so it is one on top of the other
+	buttons->addWidget(upButton);
+	buttons->addWidget(downButton);
 
-    //If the upButton is pressed, send out the buttonClicked signal with the position, and 1, for up
-    connect(upButton, &QPushButton::clicked, this, [=]() {
-        emit buttonClicked(this->pPosition, 1);
-    });
+	//If the upButton is pressed, send out the buttonClicked signal with the position, and 1, for up
+	connect(upButton, &QPushButton::clicked, this, [=]() {
+		emit buttonClicked(this->pPosition, 1);
+	});
 
-    //If the downButton is pressed, send out the buttonClicked signal with position and 0, for down
-    connect(downButton, &QPushButton::clicked, this, [=]() {
-        emit buttonClicked(this->pPosition, 0);
-    });
+	//If the downButton is pressed, send out the buttonClicked signal with position and 0, for down
+	connect(downButton, &QPushButton::clicked, this, [=]() {
+		emit buttonClicked(this->pPosition, 0);
+	});
 
-    //Add horizontal items and align to the left
-    outerLayout->addWidget(art);
-    outerLayout->addSpacerItem(spacer1);
-    outerLayout->addLayout(innerLayout);
-    outerLayout->addSpacerItem(spacer2);
-    outerLayout->addLayout(buttons);
-    outerLayout->setAlignment(Qt::AlignLeft);
+	//Add horizontal items and align to the left
+	outerLayout->addWidget(art);
+	outerLayout->addSpacerItem(spacer1);
+	outerLayout->addLayout(innerLayout);
+	outerLayout->addSpacerItem(spacer2);
+	outerLayout->addLayout(buttons);
+	outerLayout->setAlignment(Qt::AlignLeft);
 
-    //Set this->widget to be a widget with the created layout.
-    this->widget = new QWidget();
+	//Set this->widget to be a widget with the created layout.
+	this->widget = new QWidget();
 
-    this->widget->setLayout(outerLayout);
+	this->widget->setLayout(outerLayout);
 }
 
 //What to do when the mouse is clicked
 void Song::mousePressEvent(QMouseEvent *event) {
     //If the Song is already selected, unselect it, and emit a signal to tell the playlist that it no longer has a selected song. Send the position of the song, so the playlist knows what to do.
-    if (this->selected == 1) {
-        this->setSelected(0);
-        emit selectedSong(this->pPosition);
-
+	if (this->selected == true) {
+		this->setSelected(false);
     //If the Song is not already selected, select it, and emit a signal to tell the playlist to select this song instead. Send the position of the song, so the playlist knows what to do.
     } else {
-        this->setSelected(1);
-        emit selectedSong(this->pPosition);
+		this->setSelected(true);
     }
+	emit selectedSong(this->pPosition, this->selected);
 }

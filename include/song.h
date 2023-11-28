@@ -18,17 +18,17 @@ public:
     QString getSongTitle();
     QString getArtist();
     QString getAlbum();
-    QImage getArt();
+	QImage* getArt();
     qint64 getDuration();
     qint64 getPosition();
-    //No need for a getSelected, because when it is set, the playlist is already notified.
+	bool getSelected() { return selected; }
 
     QPushButton* getUpButton();
     QPushButton* getDownButton();
 
     //Setters
     void setPosition(qint64 newPosition);
-    void setSelected(int value);
+	void setSelected(bool value);
 
 protected:
 	// need for sending or receiving signals
@@ -47,7 +47,7 @@ protected:
 signals:
 	//A signal that is sent out after this widget is clicked on. This tells
 	// the playlist what the new selected song position is.
-    void selectedSong(int pos);
+	void selectedSong(int pos, bool selected);
 
     //A signal that is sent out when one of the buttons (up (1) or down (0)) is clicked, sending the song position and button type.
     void buttonClicked(int pos, int status);
@@ -75,7 +75,7 @@ private:
     qint64 pPosition;
 
     //Determines if a song is selected or not; not needed in future implementations
-    int selected = 0;
+	bool selected = false;
 
     //This stores the widget that represents the song, that is stored inside the song Widget. This is only done to allow proper highlighting when clicked. It's a necessary evil.
     QWidget* widget;

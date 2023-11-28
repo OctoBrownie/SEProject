@@ -5,6 +5,8 @@
 #include "textmetadata.h"
 #include "song.h"
 
+class QLabel;
+
 
 //Playlist class
 class Playlist: public QObject {
@@ -25,17 +27,17 @@ public:
 	void removeSong(qint64 position);
 
     //Return the currently selected song; technically a getter but really important
-	Song* getSelectedSong();
+	qint64 getSelectedSong();
 
     //Setters
-    void setImage(QString imagePath);
+	void setImagePath(QString imagePath);
     void setUserName(QString name);
-    void setPlaylistName(QString name);
-    void setSelectedSong(qint64 pos);
+	void setPlaylistName(QString name);
+	void setSelectedSong(qint64 pos, bool move);
 
 
     //Getters
-    QImage* getImage();
+	QString getImagePath();
     QString getUserName();
     QString getPlaylistName();
     qint64 getDuration();
@@ -43,6 +45,7 @@ public:
     PictureBox* getPictureBox();
     TextMetadata* getTextMetadata();
     QWidget* getListGUI();
+	QVBoxLayout* getLayout() { return this->songsListLayout;};
 
 
 public slots:
@@ -52,6 +55,8 @@ public slots:
 	// removes the currently selected song
 	void removeSong() { removeSong(selectedSong); }
 
+signals:
+	void newSelectedSong(QString songPath, QString title, QString artist, QString album, QImage* songImage);
 
 protected:
 	Q_OBJECT
@@ -77,14 +82,13 @@ protected:
     qint64 duration = 0;
 
     //Image data
-    QString imagePath;
-    QImage playlistImage;
+	QString imagePath;
 
     //Vector of all the songs
     QVector<Song*> allSongs;
 
     //Pointer in vector to current song, set to -1 as the first value is 0. This tells the system when to not look for a value.
-    qint64 selectedSong = -1;
+	qint64 selectedSong = -1;
 
 
     //Items for the picture box item

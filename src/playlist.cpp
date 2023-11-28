@@ -35,7 +35,6 @@ Playlist* Playlist::createPlaylist(QString filename, QObject* parent) {
 	playlist->userName = input.readLine();
 	playlist->duration = input.readLine().toInt();
 	playlist->imagePath = input.readLine();
-	playlist->playlistImage = QImage(playlist->imagePath);
 
 	//Go through the file
 	qint64 position = 0;
@@ -155,8 +154,8 @@ void Playlist::removeSong(qint64 position) {
 
 
 //Get the selected song; incredibly important for MP3Player interactions
-Song* Playlist::getSelectedSong() {
-    return allSongs[selectedSong];
+qint64 Playlist::getSelectedSong() {
+	return this->selectedSong;
 }
 
 /*
@@ -166,30 +165,43 @@ Song* Playlist::getSelectedSong() {
 */
 
 //Get the position of a song that needs to be selected.
-void Playlist::setSelectedSong(qint64 pos) {
-    //If the new selected song is the same as the old selected song, deselect
-    if (this->selectedSong == pos) {
-        this->selectedSong = -1;
-    }
-    else {
-        //If another song is selected, deselect that song
-        if (this->selectedSong != -1) {
-            allSongs[this->selectedSong]->setSelected(0);
-        }
+void Playlist::setSelectedSong(qint64 pos, bool move) {
+	if (pos >= allSongs.length() || pos < 0) {
+		return;
+	}
 
-        //Select the new song
-        this->selectedSong = pos;
-    }
+	//If the new selected song is the same as the old selected song, deselect
+	if (this->selectedSong == pos) {
+		this->selectedSong = -1;
+	}
+	else {
+		//If another song is selected, deselect that song
+		if (this->selectedSong != -1) {
+			allSongs[this->selectedSong]->setSelected(false);
+		}
 
-    //Proof of concept and testing
-    qDebug() << "The song " << this->selectedSong << " in the list is selected!!!";
+		if(allSongs[pos]->getSelected() == false) {
+			allSongs[pos] ->setSelected(true);
+		}
+		//Select the new song
+		this->selectedSong = pos;
+	}
+
+	if (!move) {
+		if (this->selectedSong == -1) {
+			emit newSelectedSong("", "Title", "Artist", "Album", new QImage());
+		} else {
+			//Proof of concept and testing
+			Song* sendSong = allSongs[this->selectedSong];
+			emit newSelectedSong(sendSong->getSongPath(), sendSong->getSongTitle(), sendSong->getArtist(), sendSong->getAlbum(), sendSong->getArt());
+		}
+	}
 }
 
 
 //Set the image path and image itself, based on the path
-void Playlist::setImage(QString imagePath) {
-    this->playlistImage = QImage(imagePath);
-    this->imagePath = imagePath;
+void Playlist::setImagePath(QString imagePath) {
+	this->imagePath = imagePath;
 }
 
 //Set username; used in textmetadata
@@ -212,10 +224,9 @@ void Playlist::setPlaylistName(QString name) {
 
 */
 
-
 //Return the playlist image pointer; used in picturebox
-QImage* Playlist::getImage() {
-    return &this->playlistImage;
+QString Playlist::getImagePath() {
+	return this->imagePath;
 }
 
 
@@ -256,28 +267,33 @@ qint64 Playlist::getDuration() {
 //Turn the playlist information into a GUI
 void Playlist::createPlaylistOutput() {
 
-    // The picture data and the text data in the UI. Messy, need to fix
-    this->playlistImageBox = new PictureBox(this->getImage());
-    this->textData = new TextMetadata(this->playlistName, this->userName, this->duration);
+	// The picture data and the text data in the UI.
+	this->playlistImageBox = new PictureBox(this->getImagePath());
+	connect(this->playlistImageBox, &PictureBox::newImagePath, this, &Playlist::setImagePath);
 
-    //When the playlist title and username are edited in the TextMetadata GUI, they are also updated in the playlist.
-    connect(this->textData->getPlaylistTitle(), &QLineEdit::textChanged, this, &Playlist::setPlaylistName);
-    connect(this->textData->getUsername(), &QLineEdit::textChanged, this, &Playlist::setUserName);
+	this->textData = new TextMetadata(this->playlistName, this->userName, this->duration);
 
-    //Songs list layout and widget
-    QWidget* songsListWidget = new QWidget();
-    QVBoxLayout* songsListLayout = new QVBoxLayout();
+	//When the playlist title and username are edited in the TextMetadata GUI, they are also updated in the playlist.
+	connect(this->textData->getPlaylistTitle(), &QLineEdit::textChanged, this, &Playlist::setPlaylistName);
+	connect(this->textData->getUsername(), &QLineEdit::textChanged, this, &Playlist::setUserName);
 
-    //For all songs in the playlist, add the widget to the layout
-    for(int i =0; i < allSongs.length(); i++) {
-        songsListLayout->addWidget(allSongs[i]);
-    }
+	//Songs list layout and widget
+	QWidget* songsListWidget = new QWidget();
+	songsListWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
+	QVBoxLayout* songsListLayout = new QVBoxLayout();
+	songsListLayout->setAlignment(Qt::AlignTop);
 
-    //set the widget to have the layout, and store the layout and the widget.
-    songsListWidget->setLayout(songsListLayout);
+	//For all songs in the playlist, add the widget to the layout
+	for(int i =0; i < allSongs.length(); i++) {
+		songsListLayout->addWidget(allSongs[i]);
+	}
 
-    this->songsListLayout = songsListLayout;
-    this->songsListGUI = songsListWidget;
+	//set the widget to have the layout, and store the layout and the widget.
+	songsListWidget->setLayout(songsListLayout);
+
+	this->songsListLayout = songsListLayout;
+
+	this->songsListGUI = songsListWidget;
 }
 
 
@@ -296,64 +312,64 @@ void Playlist::calculatePlaylistDuration() {
 
 //Move a song up or down in the playlist, based on the status
 void Playlist::moveSong(int pos, int status) {
-    //If the status is 1 (up button)
-    if (status == 1) {
-        //Ensure the elements do not ascend above 0, which is impossible
-        if (pos - 1 >= 0) {
-            //Save the widget temporarily
-            Song* tempSong1 = this->allSongs[pos];
+	//If the status is 1 (up button)
+	if (status == 1) {
+		//Ensure the elements do not ascend above 0, which is impossible
+		if (pos - 1 >= 0) {
+			//Save the widget temporarily
+			Song* tempSong1 = this->allSongs[pos];
 
-            //Swap the allSongs[pos] and allSongs[pos - 1] elements. Up and down switch
-            allSongs[pos] = allSongs[pos - 1];
-            allSongs[pos - 1] = tempSong1;
+			//Swap the allSongs[pos] and allSongs[pos - 1] elements. Up and down switch
+			allSongs[pos] = allSongs[pos - 1];
+			allSongs[pos - 1] = tempSong1;
 
-            //Reset the positions of the elements, so there is no confusion.
-            allSongs[pos]->setPosition(pos);
-            allSongs[pos - 1]->setPosition(pos - 1);
+			//Reset the positions of the elements, so there is no confusion.
+			allSongs[pos]->setPosition(pos);
+			allSongs[pos - 1]->setPosition(pos - 1);
 
-            //Maintain the proper selected song; check if any of the swapped songs were the selected song, and if any of them were, swap the selectedSong
-            if (this->selectedSong == pos) {
-                this->setSelectedSong(pos - 1);
-            } else if (this->selectedSong == pos - 1) {
-                this->setSelectedSong(pos);
-            }
+			//Maintain the proper selected song; check if any of the swapped songs were the selected song, and if any of them were, swap the selectedSong
+			if (this->selectedSong == pos) {
+				this->setSelectedSong(pos - 1, true);
+			} else if (this->selectedSong == pos - 1) {
+				this->setSelectedSong(pos, true);
+			}
 
-            //Remove both widgets from the layout
-            this->songsListLayout->removeWidget(allSongs[pos - 1]);
-            this->songsListLayout->removeWidget(allSongs[pos]);
+			//Remove both widgets from the layout
+			this->songsListLayout->removeWidget(allSongs[pos - 1]);
+			this->songsListLayout->removeWidget(allSongs[pos]);
 
-            //Insert them in the reverse position; add the item to be pushed towards the back first
-            this->songsListLayout->insertWidget(pos - 1, allSongs[pos]);
-            this->songsListLayout->insertWidget(pos - 1, allSongs[pos - 1]);
-        }
-    } else {
-        //Ensure the elements do not descend below the maximum size, which is impossible
-        if (pos + 1< this->allSongs.length()) {
-            //Save widget temporarily
-            Song* tempSong1 = this->allSongs[pos];
+			//Insert them in the reverse position; add the item to be pushed towards the back first
+			this->songsListLayout->insertWidget(pos - 1, allSongs[pos]);
+			this->songsListLayout->insertWidget(pos - 1, allSongs[pos - 1]);
+		}
+	} else {
+		//Ensure the elements do not descend below the maximum size, which is impossible
+		if (pos + 1< this->allSongs.length()) {
+			//Save widget temporarily
+			Song* tempSong1 = this->allSongs[pos];
 
-            //Swap
-            allSongs[pos] = allSongs[pos + 1];
-            allSongs[pos + 1] = tempSong1;
+			//Swap
+			allSongs[pos] = allSongs[pos + 1];
+			allSongs[pos + 1] = tempSong1;
 
-            //Reset positions
-            allSongs[pos]->setPosition(pos);
-            allSongs[pos + 1]->setPosition(pos +1);
+			//Reset positions
+			allSongs[pos]->setPosition(pos);
+			allSongs[pos + 1]->setPosition(pos +1);
 
-            //Maintain the proper selected song; check if any of the swapped songs were the selected song, and if any of them were, swap the selectedSong
-            if (this->selectedSong == pos) {
-                this->setSelectedSong(pos + 1);
-            } else if (this->selectedSong == pos + 1) {
-                this->setSelectedSong(pos);
-            }
+			//Maintain the proper selected song; check if any of the swapped songs were the selected song, and if any of them were, swap the selectedSong
+			if (this->selectedSong == pos) {
+				this->setSelectedSong(pos + 1, true);
+			} else if (this->selectedSong == pos + 1) {
+				this->setSelectedSong(pos, true);
+			}
 
-            //Remove both widgets from the layout
-            this->songsListLayout->removeWidget(allSongs[pos + 1]);
-            this->songsListLayout->removeWidget(allSongs[pos]);
+			//Remove both widgets from the layout
+			this->songsListLayout->removeWidget(allSongs[pos + 1]);
+			this->songsListLayout->removeWidget(allSongs[pos]);
 
-            //Insert them in the reverse position; add the item to be pushed back first
-            this->songsListLayout->insertWidget(pos, allSongs[pos + 1]);
-            this->songsListLayout->insertWidget(pos, allSongs[pos]);
-        }
-    }
+			//Insert them in the reverse position; add the item to be pushed back first
+			this->songsListLayout->insertWidget(pos, allSongs[pos + 1]);
+			this->songsListLayout->insertWidget(pos, allSongs[pos]);
+		}
+	}
 }
