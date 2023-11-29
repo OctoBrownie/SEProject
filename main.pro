@@ -5,21 +5,28 @@ QT = core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 QT += multimedia
+QT += svg
 
 SOURCES += \
+    src/library.cpp \
     src/main.cpp \
     src/musicplayer.cpp \
     src/app.cpp \
     src/equalizer.cpp \
     src/song.cpp \
-    src/customsongwidget.cpp
+    src/customsongwidget.cpp \
+    src/playlist.cpp \
+    src/textmetadata.cpp
 
 HEADERS += \
    include/app.h \
    include/equalizer.h \
    include/customsongwidget.h \
    include/musicplayer.h \
-   include/song.h
+   include/song.h \
+   include/playlist.h \
+   include/textmetadata.h \
+   include/library.h
 
 RESOURCES += \
     resources.qrc
@@ -30,9 +37,9 @@ INCLUDEPATH += include/
 INCLUDEPATH += $$PWD/lib/fftw-3.3.5-dll64
 LIBS += -L$$PWD/lib/fftw-3.3.5-dll64 -llibfftw3-3
 win32:!win32-g++ {
-    PRE_TARGETDEPS += $$PWD\lib\fftw-3.3.5-dll64\libfftw3f-3.lib \
-    $$PWD\lib\fftw-3.3.5-dll64\libfftw3l-3.lib \
-    $$PWD\lib\fftw-3.3.5-dll64\libfftw3-3.lib
+    PRE_TARGETDEPS += $$PWD/lib/fftw-3.3.5-dll64\libfftw3f-3.lib \
+    $$PWD/lib/fftw-3.3.5-dll64/libfftw3l-3.lib \
+    $$PWD/lib/fftw-3.3.5-dll64/libfftw3-3.lib
 }
 
 # for ffmpeg

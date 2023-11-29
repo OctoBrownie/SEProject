@@ -8,6 +8,8 @@
 #include<QStack>
 
 #include "app.h"
+#include "library.h"
+#include "playlist.h"
 
 App::App(QWidget *parent) : QWidget{parent} {
 	setWindowState(Qt::WindowMaximized);
@@ -15,6 +17,7 @@ App::App(QWidget *parent) : QWidget{parent} {
 
 	this->mainWidgetStack = new QStack<QWidget*>();
 	this->currMainWidget = nullptr;
+	this->musicLibrary = new Library(this);
 
 	// top level layout with everything in it
 	QVBoxLayout *topLayout = new QVBoxLayout(this);
@@ -27,11 +30,9 @@ App::App(QWidget *parent) : QWidget{parent} {
 	hLayout->setSpacing(0);
 	hLayout->setContentsMargins(0, 0, 0, 0);
 
-	// vertical widget/layout for the search and main widget
-	QWidget* vWidget = createMainContainer(hWidget);
-
-	this->playlistContainer = createPlaylistContainer(hWidget);
-	this->playBar = createPlayBar(this);
+	QWidget* vWidget = createMainContainer(hWidget);	// search/main widget container
+	this->playlistContainer = createPlaylistContainer(hWidget);	// just playlists
+	this->playBar = createPlayBar(this);	// active song (+ play/pause)
 
 	// TODO: create blank main widget?
 	// TODO: load last opened playlist from previous session
@@ -39,7 +40,7 @@ App::App(QWidget *parent) : QWidget{parent} {
 	mainWidget->setStyleSheet(QString("background:#caf;"));
 	addMainWidget(mainWidget, false);
 
-	hLayout->addWidget(this->playlistContainer);
+	hLayout->addWidget(playlistContainer);
 	hLayout->addWidget(vWidget);
 
 	topLayout->addWidget(hWidget);
@@ -162,16 +163,11 @@ QWidget* App::createPlaylistContainer(QWidget* parent) {
 	QScrollArea* scrollArea = new QScrollArea();
 	scrollArea->setFrameShape(QFrame::NoFrame);
 
-	QVBoxLayout* scrollLayout = new QVBoxLayout(scrollArea);
+	this->playlistLayout = new QVBoxLayout(scrollArea);
 	policy = QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 	scrollArea->setSizePolicy(policy);
 
-	scrollLayout->addWidget(new QLabel("p1"));
-	scrollLayout->addWidget(new QLabel("p1"));
-	scrollLayout->addWidget(new QLabel("p1"));
-	scrollLayout->addWidget(new QLabel("p1"));
-	scrollLayout->addStretch();
-
+	refreshPlaylists();
 	layout->addWidget(scrollArea);
 
 	return container;
@@ -195,7 +191,7 @@ QWidget* App::createMainContainer(QWidget* parent) {
 	return container;
 }
 
-bool App::addMainWidget(QWidget* mainWidget, bool keepStack) {
+bool App::addMainWidget(QWidget* mainWidget, bool keepStack, bool hidePlayBar) {
 	if (mainWidget == nullptr) return false;
 
 	QSizePolicy policy = mainWidget->sizePolicy();
@@ -226,7 +222,21 @@ bool App::addMainWidget(QWidget* mainWidget, bool keepStack) {
 	this->mainLayout->addWidget(mainWidget);
 	this->currMainWidget = mainWidget;
 
+	if (hidePlayBar) this->playBar->hide();
+	else this->playBar->show();
+
 	return true;
+}
+
+QWidget* App::createPlaylistWidget(Playlist* p, QWidget* parent) {
+	if (p == nullptr) return nullptr;
+
+	QWidget* w = new QWidget(parent);
+	QHBoxLayout* layout = new QHBoxLayout(w);
+	layout->addWidget(new QLabel(p->getPlaylistName()));
+	layout->addWidget(new QLabel(QString::number(p->getDuration()/60) + " min"));
+
+	return w;
 }
 
 void App::goBack() {
@@ -237,6 +247,24 @@ void App::goBack() {
 
 	this->currMainWidget = mainWidgetStack->pop();
 	this->currMainWidget->show();
+}
+
+void App::refreshPlaylists() {
+	// delete all playlists currently in the layout
+	QLayoutItem* i = playlistLayout->takeAt(0);
+	while(i != nullptr) {
+		delete i->widget();
+		delete i;
+		i = playlistLayout->takeAt(0);
+	}
+
+	// remake all playlists
+	const QVector<Playlist*>* playlists = musicLibrary->getPlaylists();
+	for (Playlist* p : *playlists) {
+//		playlistLayout->addWidget(App::createPlaylistWidget(p, this->playlistContainer));
+		playlistLayout->addWidget(App::createPlaylistWidget(p));
+	}
+	playlistLayout->addStretch();
 }
 
 
