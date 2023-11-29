@@ -1,13 +1,53 @@
 #include<QPushButton>
 #include<QLabel>
+#include <QMainWindow>
+#include <QFileDialog>
+#include <QDir>
+#include <QMessageBox>
 
 #include "picturebox.h"
 
 //Constructor
-PictureBox::PictureBox(QImage* playlistArt): QVBoxLayout()
+PictureBox::PictureBox(QString playlistArtPath): QVBoxLayout()
 {
-    //Create a label, set the size, and create a PixMap
-    QLabel* art = new QLabel();
+    this->art = new QLabel();
+    generateImage(playlistArtPath);
+
+    //Photo search button
+    QPushButton* photoSearch = new QPushButton("Browse Photos");
+    connect(photoSearch, &QPushButton::clicked, this, &PictureBox::select_image);
+
+    //Add both widgets
+    addWidget(this->art);
+    addWidget(photoSearch);
+}
+
+
+//This function is a modified version of Bryan Piedra's function he created. All credit goes to him.
+void PictureBox::select_image()
+{
+    QMainWindow* newWindow = new QMainWindow();
+    QFileDialog dialog(newWindow);
+    dialog.setNameFilter("PNG Files (*.png);;JPG Files (*.jpg);;JPEG Files (*.jpeg)");
+
+    // Set the dialog to select a single file
+    dialog.setFileMode(QFileDialog::ExistingFile);
+
+    // Open the dialog and get the selected file path
+    QString selectedFilePath = dialog.getOpenFileName(newWindow, "Select an image file", QString(), "PNG Files (*.png);;JPG Files (*.jpg);;JPEG Files (*.jpeg)");
+
+    if (selectedFilePath.isEmpty()) {
+        return;
+    }
+
+    emit newImagePath(selectedFilePath);
+
+    generateImage(selectedFilePath);
+}
+
+void PictureBox::generateImage(QString imagePath)
+{
+    QImage* playlistArt = new QImage(imagePath);
     QSize changedSize(150,150);
     QPixmap map;
 
@@ -20,12 +60,5 @@ PictureBox::PictureBox(QImage* playlistArt): QVBoxLayout()
     }
 
     //Set the label to have the PixMap
-    art->setPixmap(map);
-
-    //Photo search button
-    QPushButton* photoSearch = new QPushButton("Browse Photos");
-
-    //Add both widgets
-    addWidget(art);
-    addWidget(photoSearch);
+    this->art->setPixmap(map);
 }

@@ -1,3 +1,4 @@
+#include <SDL.h>
 #include<QApplication>
 #include<QPushButton>
 #include<QHBoxLayout>
@@ -10,23 +11,29 @@
 #include<QDockWidget>
 #include<QScrollArea>
 #include<QLabel>
-
-#include<iostream>
+#include <iostream>
 
 #include "interface.h"
 #include "picturebox.h"
 #include "textmetadata.h"
-#include "applicationbuttons.h"
-#include "editingbuttons.h"
 #include "mediaplayer.h"
-#include "song.h"
 #include "playlist.h"
-#include "editingbuttons.h"
 
-
+#define SDL_MAIN_HANDLED
 
 int main(int argc, char **argv) {
+    SDL_SetMainReady();
+    SDL_setenv("SDL_AUDIODRIVER", "directsound", 1);
+    	if (SDL_Init(SDL_INIT_AUDIO) < 0) {
+		std::cerr << "Couldn't initialize SDL..." << std::endl;
+		return 1;
+	}
+
     QApplication app (argc, argv);
+
+    QString playPath = QString("C:/Users/astro/Desktop/MyPlaylist.pa");
+    //QString playPath = QString("");
+    Playlist myPlaylist = Playlist(playPath);
 
     // The layout of the editor portion of the layout application
     QVBoxLayout* playlistEditor = new QVBoxLayout;
@@ -38,32 +45,25 @@ int main(int argc, char **argv) {
 
     QVBoxLayout* MP3ViewerLayout = new QVBoxLayout();
 	// Buttons that provide central functionality to the application
-	QHBoxLayout* applicationButtons = Interface::createMainToolbar();
+    SettingsWindow* settings = new SettingsWindow();
+    QHBoxLayout* applicationButtons = Interface::createMainToolbar(&myPlaylist, settings);
 
     MediaPlayer* player = new MediaPlayer();
     QSpacerItem* spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
     MP3ViewerLayout->addLayout(applicationButtons);
     MP3ViewerLayout->addSpacerItem(spacer);
-	MP3ViewerLayout->addWidget(player);
+    MP3ViewerLayout->addWidget(player);
     MP3Viewer->addLayout(MP3ViewerLayout);
 
     QWidget *window = new QWidget;
     window->setLayout(MP3Viewer);
 
 
-//	QString playPath = QString("C:/Users/astro/Desktop/MyPlaylist.pa");
-	QString playPath = QString("./invalid/file.pa");
-    Playlist myPlaylist = Playlist(playPath);
-	if (!myPlaylist.isValid()) {
-		std::cerr << "And you thought you'd be able to easily run everything on startup?! Here, have an invalid file." << std::endl;
-		return 1;
-	}
-
-
+    player->setPlaylist(&myPlaylist);
 
     //This box holds the image and the text (title, user, and duration)
-    QHBoxLayout* metadataHolder = new QHBoxLayout;
+    QHBoxLayout* metadataHolder = new QHBoxLayout();
     // The picture data and the text data in the UI
     PictureBox* photoData = myPlaylist.getPictureBox();
     TextMetadata* textData = myPlaylist.getTextMetadata();
@@ -72,12 +72,13 @@ int main(int argc, char **argv) {
     metadataHolder->addLayout(textData);
 
 	// These are the buttons that allow playlist editing
-	QHBoxLayout* playlistEditorButtons = Interface::createPlaylistToolbar();
+    QHBoxLayout* playlistEditorButtons = Interface::createPlaylistToolbar(nullptr, &myPlaylist);
+
 
     //This is the scrollable list of the songs in the playlist.
     QScrollArea* songsList = new QScrollArea;
+    songsList->setWidgetResizable(true);
     songsList->setWidget(myPlaylist.getListGUI());
-
 
     // Add data to the editor component
     playlistEditor->addLayout(metadataHolder);
@@ -93,16 +94,17 @@ int main(int argc, char **argv) {
     playlistEditPane->setMinimumWidth(500);
     Interface* mainWindow = new Interface(window, playlistEditPane);
 
-
     mainWindow->show();
 
-    Song* newSong = new Song("C:/Users/astro/Downloads/Fluffing-a-Duck(chosic.com).mp3");
-    myPlaylist.addSong(newSong);
     QString* saveFile = new QString("C:/Users/astro/Desktop/SecondPlaylist.pa");
     myPlaylist.savePlaylist(saveFile);
 
-    myPlaylist.removeSong(5);
+    int ret = app.exec();
+    SDL_QuitSubSystem(SDL_INIT_AUDIO);
+	SDL_Quit();
 
-    return app.exec();
+    return ret;
 }
+
+
 
