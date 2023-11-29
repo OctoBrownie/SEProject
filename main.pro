@@ -70,7 +70,7 @@ win32 {
 
 # for SDL
 INCLUDEPATH += $$PWD/lib/SDL2-2.28.5/include
-LIBS += -L$$PWD/lib/SDL2-2.28.5/lib -lsdl2
+LIBS += -L$$PWD/lib/SDL2-2.28.5/bin -L$$PWD/lib/SDL2-2.28.5/lib -lsdl2
 win32:!win32-g++ {
     PRE_TARGETDEPS += $$PWD/lib/SDL2-2.28.5/lib/SDL2.lib \
     $$PWD/lib/SDL2-2.28.5/lib/SDL2main.lib \
