@@ -102,12 +102,18 @@ qint64 Playlist::getSelectedSong() {
 
 //Get the position of a song that needs to be selected.
 void Playlist::setSelectedSong(qint64 pos, bool move) {
-    if (pos >= allSongs.length() || pos < 0) {
-        return;
+    if (pos >= allSongs.length()) {
+        this->selectedSong = -1;
+        if (allSongs[pos - 1]->getSelected() == true)
+            allSongs[pos - 1]->setSelected(false);
     }
-
+    else if (pos < 0) {
+        this->selectedSong = -1;
+        if (allSongs[pos + 1]->getSelected() == true)
+            allSongs[pos + 1]->setSelected(false);
+    }
     //If the new selected song is the same as the old selected song, deselect
-    if (this->selectedSong == pos) {
+    else if (this->selectedSong == pos) {
         this->selectedSong = -1;
     }
     else {

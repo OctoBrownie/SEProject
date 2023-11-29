@@ -3,7 +3,7 @@
 
 *~
 *.autosave
-#*.a
+*.a
 *.core
 *.moc
 *.o
@@ -69,10 +69,10 @@ CMakeLists.txt.user*
 
 # Binaries
 # --------
-#*.dll
+*.dll
 *.exe
 
 
 # Library Folder (Big boy)
 # ------------------------
-#lib/
+lib/

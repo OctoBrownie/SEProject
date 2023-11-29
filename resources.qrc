@@ -11,5 +11,6 @@
         <file>images/NoPlaylistImage.svg</file>
         <file>icons/downButton.svg</file>
         <file>icons/upButton.svg</file>
+        <file>icons/randomize.svg</file>
     </qresource>
 </RCC>
