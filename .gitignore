@@ -71,3 +71,8 @@ CMakeLists.txt.user*
 # --------
 #*.dll
 *.exe
+
+
+# Library Folder (Big boy)
+# ------------------------
+#lib/
