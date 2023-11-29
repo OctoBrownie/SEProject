@@ -32,13 +32,13 @@ RESOURCES += \
 
 
 # for fftw3
-INCLUDEPATH += $$PWD/lib/fftw-3.3.5-dll64
-LIBS += -L$$PWD/lib/fftw-3.3.5-dll64 -llibfftw3-3
-win32:!win32-g++ {
-    PRE_TARGETDEPS += $$PWD\lib\fftw-3.3.5-dll64\libfftw3f-3.lib \
-    $$PWD\lib\fftw-3.3.5-dll64\libfftw3l-3.lib \
-    $$PWD\lib\fftw-3.3.5-dll64\libfftw3-3.lib
-}
+#INCLUDEPATH += $$PWD/lib/fftw-3.3.5-dll64
+#LIBS += -L$$PWD/lib/fftw-3.3.5-dll64 -llibfftw3-3
+#win32:!win32-g++ {
+#    PRE_TARGETDEPS += $$PWD\lib\fftw-3.3.5-dll64\libfftw3f-3.lib \
+#    $$PWD\lib\fftw-3.3.5-dll64\libfftw3l-3.lib \
+#    $$PWD\lib\fftw-3.3.5-dll64\libfftw3-3.lib
+#}
 
 # for ffmpeg
 INCLUDEPATH += $$PWD/lib/ffmpeg-6.1/include
