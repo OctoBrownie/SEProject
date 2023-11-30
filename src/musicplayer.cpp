@@ -137,10 +137,14 @@ void MusicPlayer::play() {
 	}
 
 	SDL_PauseAudioDevice(audioDevice, false);
+	emit playbackStarted();
 }
 
 void MusicPlayer::pause() {
-	if (audioDevice) SDL_PauseAudioDevice(audioDevice, true);
+	if (audioDevice) {
+		SDL_PauseAudioDevice(audioDevice, true);
+		emit playbackStopped();
+	}
 }
 
 void MusicPlayer::audioCallback(void* userdata, Uint8* stream, int len) {

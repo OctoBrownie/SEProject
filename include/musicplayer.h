@@ -105,6 +105,15 @@ public slots:
 	 */
 	void pause();
 signals:
+	/**
+	 * Emitted when playback has started.
+	 */
+	void playbackStarted();
+
+	/**
+	 * Emitted when playback has stopped. Is not emitted when the object is destroyed.
+	 */
+	void playbackStopped();
 };
 
 #endif // MUSICPLAYER_H

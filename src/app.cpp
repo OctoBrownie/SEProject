@@ -37,7 +37,6 @@ App::App(QWidget *parent) : QWidget{parent} {
 	// TODO: create blank main widget?
 	// TODO: load last opened playlist from previous session
 	QWidget* mainWidget = new QLabel("\"main widget\"");
-	mainWidget->setStyleSheet(QString("background:#caf;"));
 	addMainWidget(mainWidget, false);
 
 	hLayout->addWidget(playlistContainer);
@@ -54,7 +53,6 @@ App::~App() {
 
 QWidget* App::createTopBar(QWidget* parent) {
 	QWidget* bar = new QWidget(parent);
-	bar->setStyleSheet(QString("background:#fcc;"));
 
 	QSizePolicy policy = QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 	policy.setVerticalStretch(1);
@@ -98,7 +96,6 @@ QWidget* App::createTopBar(QWidget* parent) {
 
 QWidget* App::createPlayBar(QWidget* parent) {
 	QWidget* bar = new QWidget(parent);
-	bar->setStyleSheet(QString("background:#ccf;"));
 
 	QSizePolicy policy = QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Maximum);
 	policy.setRetainSizeWhenHidden(false);
@@ -148,7 +145,6 @@ QWidget* App::createPlayBar(QWidget* parent) {
 
 QWidget* App::createPlaylistContainer(QWidget* parent) {
 	QWidget* container = new QWidget(parent);
-	container->setStyleSheet(QString("background:#cfe;"));
 
 	QSizePolicy policy = QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 	policy.setHorizontalStretch(1);
