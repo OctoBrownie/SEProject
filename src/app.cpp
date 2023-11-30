@@ -10,6 +10,7 @@
 #include "app.h"
 #include "library.h"
 #include "playlist.h"
+#include "playlistwidget.h"
 
 App::App(QWidget *parent) : QWidget{parent} {
 	setWindowState(Qt::WindowMaximized);
@@ -224,17 +225,6 @@ bool App::addMainWidget(QWidget* mainWidget, bool keepStack, bool hidePlayBar) {
 	return true;
 }
 
-QWidget* App::createPlaylistWidget(Playlist* p, QWidget* parent) {
-	if (p == nullptr) return nullptr;
-
-	QWidget* w = new QWidget(parent);
-	QHBoxLayout* layout = new QHBoxLayout(w);
-	layout->addWidget(new QLabel(p->getPlaylistName()));
-	layout->addWidget(new QLabel(QString::number(p->getDuration()/60) + " min"));
-
-	return w;
-}
-
 void App::goBack() {
 	if (mainWidgetStack->isEmpty()) return;
 
@@ -246,6 +236,8 @@ void App::goBack() {
 }
 
 void App::refreshPlaylists() {
+	// TODO: optimize with PlaylistWidget::setPlaylist()
+
 	// delete all playlists currently in the layout
 	QLayoutItem* i = playlistLayout->takeAt(0);
 	while(i != nullptr) {
@@ -256,11 +248,18 @@ void App::refreshPlaylists() {
 
 	// remake all playlists
 	const QVector<Playlist*>* playlists = musicLibrary->getPlaylists();
+	PlaylistWidget* pWidget;
 	for (Playlist* p : *playlists) {
-//		playlistLayout->addWidget(App::createPlaylistWidget(p, this->playlistContainer));
-		playlistLayout->addWidget(App::createPlaylistWidget(p));
+		pWidget = new PlaylistWidget(p);
+		connect(pWidget, SIGNAL(openPlaylist(Playlist*)), this, SLOT(openPlaylist(Playlist*)));
+		playlistLayout->addWidget(pWidget);
 	}
 	playlistLayout->addStretch();
+}
+
+void App::openPlaylist(Playlist* p) {
+	if (p == nullptr) return;
+	addMainWidget(new QLabel(p->getPlaylistName()));
 }
 
 

@@ -13,6 +13,7 @@ SOURCES += \
     src/musicplayer.cpp \
     src/app.cpp \
     src/equalizer.cpp \
+    src/playlistwidget.cpp \
     src/song.cpp \
     src/customsongwidget.cpp \
     src/playlist.cpp \
@@ -23,6 +24,7 @@ HEADERS += \
    include/equalizer.h \
    include/customsongwidget.h \
    include/musicplayer.h \
+   include/playlistwidget.h \
    include/song.h \
    include/playlist.h \
    include/textmetadata.h \

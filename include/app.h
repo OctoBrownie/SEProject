@@ -81,25 +81,16 @@ protected:
 	 * @return a new main container with search bar initialized but no main widget
 	 */
 	QWidget* createMainContainer(QWidget* parent=nullptr);
-
-	/**
-	 * Creates a new playlist widget based on the given playlist. Is a small widget for
-	 * use in the playlist container.
-	 * @param playlist	playlist to display with this widget
-	 * @param parent	parent object of this new widget
-	 * @return a new widget containing playlist info
-	 */
-	static QWidget* createPlaylistWidget(Playlist* p, QWidget* parent=nullptr);
 public:
 	explicit App(QWidget *parent = nullptr);
 	virtual ~App();
-	// virtual void keyPressEvent(QKeyEvent* event);
 
 	bool addMainWidget(QWidget* mainWidget, bool keepStack=true, bool hidePlayBar=false);
 
 public slots:
 	void goBack();
 	void refreshPlaylists();
+	void openPlaylist(Playlist* p);
 signals:
 };
 

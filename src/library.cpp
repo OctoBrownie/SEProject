@@ -36,7 +36,9 @@ Library::~Library() {
 	if (this->songs != nullptr) delete this->songs;
 }
 
-void Library::search(QString query) const {}
+void Library::search(QString query) const {
+	// TODO: implement search
+}
 
 void Library::loadSongDirs() {
 	this->songDirs->clear();

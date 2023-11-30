@@ -285,7 +285,7 @@ void Playlist::createPlaylistOutput() {
 	songsListLayout->setAlignment(Qt::AlignTop);
 
 	//For all songs in the playlist, add the widget to the layout
-	for(int i =0; i < allSongs->length(); i++) {
+	for (int i = 0; i < allSongs->length(); i++) {
 		songsListLayout->addWidget((*allSongs)[i]);
 	}
 
