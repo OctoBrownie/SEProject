@@ -30,6 +30,14 @@ INCLUDEPATH += include/
 RESOURCES += \
     resources.qrc
 
+FORMS += \
+    searchwindow.ui
+
+# Default rules for deployment.
+qnx: target.path = /tmp/$${TARGET}/bin
+else: unix:!android: target.path = /opt/$${TARGET}/bin
+!isEmpty(target.path): INSTALLS += target
+
 
 # for fftw3
 INCLUDEPATH += $$PWD/lib/fftw-3.3.5-dll64
