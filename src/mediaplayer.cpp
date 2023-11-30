@@ -115,6 +115,7 @@ MediaPlayer::MediaPlayer(QWidget* parent): QWidget(parent)
     setLayout(playerLayout);
 
     connect(this, &MediaPlayer::callBackFinished, this, &MediaPlayer::skip);
+    connect(this, &MediaPlayer::closeStream, this->currentPlaylist, &Playlist::songRemoved);
 }
 
 void MediaPlayer::swapLoop() {

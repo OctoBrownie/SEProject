@@ -57,6 +57,8 @@ void Playlist::addSong(Song* newSong) {
 
     //Connect with the button clicked song, so when either the up or down button is clicked, the playlist can respond.
     connect(newSong, &Song::buttonClicked, this, &Playlist::moveSong);
+
+    emit newSongAdded();
 }
 
 //Remove a song
@@ -86,6 +88,8 @@ void Playlist::removeSong(qint64 position) {
 
     //Free widget
     delete chosenSong;
+
+    emit songRemoved();
 }
 
 
@@ -157,7 +161,9 @@ void Playlist::setPlaylistName(QString name) {
 }
 
 
-
+void Playlist::setPlaylistPath(QString playlistPath) {
+    this->openedPlaylist = playlistPath;
+}
 
 
 /*
@@ -165,6 +171,10 @@ void Playlist::setPlaylistName(QString name) {
     Getters
 
 */
+
+QString* Playlist::getPlaylistPath() {
+    return &this->openedPlaylist;
+}
 
 
 //Return the playlist image pointer; used in picturebox
@@ -199,6 +209,9 @@ qint64 Playlist::getDuration() {
     return this->duration;
 }
 
+QVector<Song*>* Playlist::getSongList() {
+    return &this->allSongs;
+}
 
 /*
 

@@ -132,6 +132,8 @@ void Song::setSelected(bool selected) {
     // Set background color for the entire widget and its child widgets
     QString backgroundColor = (this->selected == true) ? "#73b2e4" : "#F0F0F0";
     this->widget->setStyleSheet(QString("background-color: %1").arg(backgroundColor));
+
+    emit cloneHelper(selected);
 }
 
 
@@ -141,7 +143,6 @@ void Song::setSelected(bool selected) {
     Protected Methods
 
 */
-
 
 //Make the layout; Used to set the layout of this widget
 void Song::makeLayout() {
@@ -239,6 +240,19 @@ void Song::mousePressEvent(QMouseEvent *event) {
         emit selectedSong(this->pPosition, false);
 
     //If the Song is not already selected, select it, and emit a signal to tell the playlist to select this song instead. Send the position of the song, so the playlist knows what to do.
+    } else {
+        this->setSelected(true);
+        emit selectedSong(this->pPosition, false);
+    }
+}
+
+void Song::triggerMousePressEvent() {
+    //If the Song is already selected, unselect it, and emit a signal to tell the playlist that it no longer has a selected song. Send the position of the song, so the playlist knows what to do.
+    if (this->selected == true) {
+        this->setSelected(false);
+        emit selectedSong(this->pPosition, false);
+
+        //If the Song is not already selected, select it, and emit a signal to tell the playlist to select this song instead. Send the position of the song, so the playlist knows what to do.
     } else {
         this->setSelected(true);
         emit selectedSong(this->pPosition, false);

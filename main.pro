@@ -14,7 +14,9 @@ SOURCES += \
     src/playlist.cpp \
     src/settingswindow.cpp \
     src/song.cpp \
-    src/textmetadata.cpp
+    src/songclone.cpp \
+    src/textmetadata.cpp \
+    src/searchwindow.cpp \
 
 HEADERS += \
     include/interface.h \
@@ -24,6 +26,8 @@ HEADERS += \
     include/settingswindow.h \
     include/song.h \
     include/textmetadata.h \
+    include/searchwindow.h \
+    include/songclone.h
 
 INCLUDEPATH += include/
 
@@ -31,12 +35,12 @@ RESOURCES += \
     resources.qrc
 
 FORMS += \
-    searchwindow.ui
+    src/searchwindow.ui
 
 # Default rules for deployment.
-qnx: target.path = /tmp/$${TARGET}/bin
-else: unix:!android: target.path = /opt/$${TARGET}/bin
-!isEmpty(target.path): INSTALLS += target
+#qnx: target.path = /tmp/$${TARGET}/bin
+#else: unix:!android: target.path = /opt/$${TARGET}/bin
+#!isEmpty(target.path): INSTALLS += target
 
 
 # for fftw3

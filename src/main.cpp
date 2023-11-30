@@ -46,15 +46,10 @@ int main(int argc, char **argv) {
     QVBoxLayout* MP3ViewerLayout = new QVBoxLayout();
 	// Buttons that provide central functionality to the application
     SettingsWindow* settings = new SettingsWindow();
-    QHBoxLayout* applicationButtons = Interface::createMainToolbar(&myPlaylist, settings);
 
     MediaPlayer* player = new MediaPlayer();
     QSpacerItem* spacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
 
-    MP3ViewerLayout->addLayout(applicationButtons);
-    MP3ViewerLayout->addSpacerItem(spacer);
-    MP3ViewerLayout->addWidget(player);
-    MP3Viewer->addLayout(MP3ViewerLayout);
 
     QWidget *window = new QWidget;
     window->setLayout(MP3Viewer);
@@ -72,7 +67,6 @@ int main(int argc, char **argv) {
     metadataHolder->addLayout(textData);
 
 	// These are the buttons that allow playlist editing
-    QHBoxLayout* playlistEditorButtons = Interface::createPlaylistToolbar(nullptr, &myPlaylist);
 
 
     //This is the scrollable list of the songs in the playlist.
@@ -82,8 +76,7 @@ int main(int argc, char **argv) {
 
     // Add data to the editor component
     playlistEditor->addLayout(metadataHolder);
-    playlistEditor->addLayout(playlistEditorButtons);
-    playlistEditor->addWidget(songsList);
+
 
     QWidget* playlistEditWidget = new QWidget();
     playlistEditWidget->setLayout(playlistEditor);
@@ -93,6 +86,17 @@ int main(int argc, char **argv) {
     playlistEditPane->setWidget(playlistEditWidget);
     playlistEditPane->setMinimumWidth(500);
     Interface* mainWindow = new Interface(window, playlistEditPane);
+
+    QHBoxLayout* playlistEditorButtons = mainWindow->createPlaylistToolbar(&myPlaylist, mainWindow);
+    playlistEditor->addLayout(playlistEditorButtons);
+    playlistEditor->addWidget(songsList);
+
+    QHBoxLayout* applicationButtons = mainWindow->createMainToolbar(&myPlaylist, settings);
+
+    MP3ViewerLayout->addLayout(applicationButtons);
+    MP3ViewerLayout->addSpacerItem(spacer);
+    MP3ViewerLayout->addWidget(player);
+    MP3Viewer->addLayout(MP3ViewerLayout);
 
     mainWindow->show();
 

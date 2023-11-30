@@ -30,6 +30,8 @@ public:
     QPushButton* getUpButton();
     QPushButton* getDownButton();
 
+    void triggerMousePressEvent();
+
     //Setters
     void setPosition(qint64 newPosition);
     void setSelected(bool selected);
@@ -47,6 +49,8 @@ signals:
 
     //A signal that is sent out when one of the buttons (up (1) or down (0)) is clicked, sending the song position and button type.
     void buttonClicked(int pos, int status);
+
+    void cloneHelper(bool selected);
 
 private:
     //Path to the song, used by the MP3 player to play the song later

@@ -35,9 +35,10 @@ public:
     void setUserName(QString name);
     void setPlaylistName(QString name);
     void setSelectedSong(qint64 pos, bool move);
-
+    void setPlaylistPath(QString playlistPath);
 
     //Getters
+    QString* getPlaylistPath();
     QString getUserName();
     QString getPlaylistName();
     qint64 getDuration();
@@ -47,10 +48,14 @@ public:
     TextMetadata* getTextMetadata();
     QWidget* getListGUI();
 
+    QVector<Song*>* getSongList();
+
     QVBoxLayout* getLayout() { return this->songsListLayout;};
 
 signals:
     void newSelectedSong(QString songPath, QString title, QString artist, QString album, QImage* songImage);
+    void newSongAdded();
+    void songRemoved();
 
 protected:
     //Turn the playlist data into a GUI output
