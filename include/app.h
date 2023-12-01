@@ -86,10 +86,10 @@ public:
 	virtual ~App();
 
 	bool addMainWidget(QWidget* mainWidget, bool keepStack=true, bool hidePlayBar=false);
+	Library* getLibrary() { return musicLibrary; }
 
 public slots:
 	void goBack();
-	void refreshPlaylists();
 	void openPlaylist(Playlist* p);
 signals:
 };

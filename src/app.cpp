@@ -10,7 +10,7 @@
 #include "app.h"
 #include "library.h"
 #include "playlist.h"
-#include "playlistwidget.h"
+#include "playlistcontainer.h"
 
 App::App(QWidget *parent) : QWidget{parent} {
 	setWindowState(Qt::WindowMaximized);
@@ -32,7 +32,7 @@ App::App(QWidget *parent) : QWidget{parent} {
 	hLayout->setContentsMargins(0, 0, 0, 0);
 
 	QWidget* vWidget = createMainContainer(hWidget);	// search/main widget container
-	this->playlistContainer = createPlaylistContainer(hWidget);	// just playlists
+	this->playlistContainer = new PlaylistContainer(this, musicLibrary, hWidget);	// just playlists
 	this->playBar = createPlayBar(this);	// active song (+ play/pause)
 
 	// TODO: create blank main widget?
@@ -144,32 +144,6 @@ QWidget* App::createPlayBar(QWidget* parent) {
 	return bar;
 }
 
-QWidget* App::createPlaylistContainer(QWidget* parent) {
-	QWidget* container = new QWidget(parent);
-
-	QSizePolicy policy = QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-	policy.setHorizontalStretch(1);
-	container->setSizePolicy(policy);
-
-	QVBoxLayout* layout = new QVBoxLayout(container);
-	layout->setSpacing(0);
-
-	layout->addWidget(new QLabel("Playlists"));
-
-	// TODO: Give scrollLayout to Library to populate with clickable playlists
-	QScrollArea* scrollArea = new QScrollArea();
-	scrollArea->setFrameShape(QFrame::NoFrame);
-
-	this->playlistLayout = new QVBoxLayout(scrollArea);
-	policy = QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-	scrollArea->setSizePolicy(policy);
-
-	refreshPlaylists();
-	layout->addWidget(scrollArea);
-
-	return container;
-}
-
 QWidget* App::createMainContainer(QWidget* parent) {
 	QWidget* container = new QWidget(parent);
 	container->setStyleSheet(QString("background:#eee;"));
@@ -233,28 +207,6 @@ void App::goBack() {
 
 	this->currMainWidget = mainWidgetStack->pop();
 	this->currMainWidget->show();
-}
-
-void App::refreshPlaylists() {
-	// TODO: optimize with PlaylistWidget::setPlaylist()
-
-	// delete all playlists currently in the layout
-	QLayoutItem* i = playlistLayout->takeAt(0);
-	while(i != nullptr) {
-		delete i->widget();
-		delete i;
-		i = playlistLayout->takeAt(0);
-	}
-
-	// remake all playlists
-	const QVector<Playlist*>* playlists = musicLibrary->getPlaylists();
-	PlaylistWidget* pWidget;
-	for (Playlist* p : *playlists) {
-		pWidget = new PlaylistWidget(p);
-		connect(pWidget, SIGNAL(openPlaylist(Playlist*)), this, SLOT(openPlaylist(Playlist*)));
-		playlistLayout->addWidget(pWidget);
-	}
-	playlistLayout->addStretch();
 }
 
 void App::openPlaylist(Playlist* p) {

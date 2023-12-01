@@ -12,20 +12,11 @@ class PlaylistWidget : public QWidget {
 protected:
 	Q_OBJECT
 
-	/**
-	 * The currently displayed playlist. Does not manage this memory at all.
-	 */
+	// currently displayed playlist (DOESN'T manage this memory at all)
 	Playlist* currPlaylist;
 
-	/**
-	 * Display labels for the playlist being shown.
-	 */
+	// display labels for the playlist being shown
 	QLabel *nameLabel, *durationLabel;
-
-	/**
-	 * Whether this widget is selected or not.
-	 */
-	bool selected;
 
 	/**
 	 * Overrides the mouse click event for QWidget to register whether this
@@ -38,13 +29,6 @@ protected:
 	 * widget was clicked or not.
 	 */
 	void mouseDoubleClickEvent(QMouseEvent *event) override;
-
-	/**
-	 * Sets whether the widget is selected or not and updates the widget to reflect
-	 * the state change.
-	 * @param s	whether the widget should be selected or not
-	 */
-	void setSelected(bool s);
 public:
 	/**
 	 * Creates a new widget to show this playlist.
@@ -65,8 +49,16 @@ public:
 	 * displayed
 	 */
 	Playlist* getPlaylist() { return currPlaylist; }
+
+	/**
+	 * Changes the widget to make it look selected or deselected. Doesn't store this
+	 * information at all.
+	 * @param s	whether the widget should be selected or not
+	 */
+	void setSelected(bool s);
 public slots:
 signals:
+	void leftClicked(PlaylistWidget* widgetClicked);
 	void openPlaylist(Playlist* p);
 };
 

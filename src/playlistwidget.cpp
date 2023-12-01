@@ -13,8 +13,6 @@
 #define DEFAULT_NAME_TEXT "[playlist name]"
 
 PlaylistWidget::PlaylistWidget(Playlist* p, QWidget* parent) : QWidget{parent} {
-	selected = false;
-
 	nameLabel = new QLabel(this);
 	durationLabel = new QLabel(this);
 
@@ -32,10 +30,7 @@ void PlaylistWidget::setPlaylist(Playlist* p) {
 }
 
 void PlaylistWidget::setSelected(bool s) {
-	if (selected == s) return;
-	selected = s;
-
-	if (selected) {
+	if (s) {
 		setStyleSheet("background-color:#eeefff;");
 	}
 	else {
@@ -44,9 +39,7 @@ void PlaylistWidget::setSelected(bool s) {
 }
 
 void PlaylistWidget::mousePressEvent(QMouseEvent *event) {
-	if (event->button() == Qt::LeftButton) {
-		setSelected(!selected);
-	}
+	if (event->button() == Qt::LeftButton) emit leftClicked(this);
 }
 
 void PlaylistWidget::mouseDoubleClickEvent(QMouseEvent *event) {
