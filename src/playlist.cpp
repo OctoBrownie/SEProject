@@ -184,7 +184,7 @@ void Playlist::setSelectedSong(qint64 pos, bool move) {
 		}
 
 		if((*allSongs)[pos]->getSelected() == false) {
-			(*allSongs)[pos] ->setSelected(true);
+			(*allSongs)[pos]->setSelected(true);
 		}
 		//Select the new song
 		this->selectedSong = pos;
@@ -279,22 +279,26 @@ void Playlist::createPlaylistOutput() {
 	connect(this->textData->getUsername(), &QLineEdit::textChanged, this, &Playlist::setUserName);
 
 	//Songs list layout and widget
-	QWidget* songsListWidget = new QWidget();
+	QScrollArea* scrollArea = new QScrollArea();
+	QWidget* songsListWidget = new QWidget(scrollArea);
 	songsListWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
 	QVBoxLayout* songsListLayout = new QVBoxLayout();
 	songsListLayout->setAlignment(Qt::AlignTop);
+	songsListLayout->addWidget(this->textData);
 
 	//For all songs in the playlist, add the widget to the layout
 	for (int i = 0; i < allSongs->length(); i++) {
 		songsListLayout->addWidget((*allSongs)[i]);
 	}
+	songsListLayout->addStretch();
 
 	//set the widget to have the layout, and store the layout and the widget.
 	songsListWidget->setLayout(songsListLayout);
+	scrollArea->setWidget(songsListWidget);
 
 	this->songsListLayout = songsListLayout;
 
-	this->songsListGUI = songsListWidget;
+	this->songsListGUI = scrollArea;
 }
 
 

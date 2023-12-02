@@ -36,8 +36,16 @@ Library::~Library() {
 	if (this->songs != nullptr) delete this->songs;
 }
 
-void Library::search(QString query) const {
-	// TODO: implement search
+QVector<Song*>* Library::search(QString query) const {
+	query = query.toCaseFolded();
+	QVector<Song*>* res = new QVector<Song*>();
+	for (Song* s : *this->songs) {
+		if (s->getSongTitle().toCaseFolded().contains(query) ||
+			s->getArtist().toCaseFolded().contains(query) ||
+			s->getAlbum().toCaseFolded().contains(query))
+			res->append(s);
+	}
+	return res;
 }
 
 void Library::loadSongDirs() {

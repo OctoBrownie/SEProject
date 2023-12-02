@@ -4,6 +4,7 @@
 
 #include<QVector>
 class QLabel;
+class QVBoxLayout;
 
 #include "textmetadata.h"
 #include "song.h"

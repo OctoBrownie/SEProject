@@ -66,7 +66,7 @@ private:
     QString album;
 
     //Album art
-    QImage albumArt;
+	QImage* albumArt;
 
     //How long the song is, in seconds.
     qint64 duration;

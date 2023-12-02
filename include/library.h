@@ -27,7 +27,7 @@ public:
 	Library(QObject* parent=nullptr);
 	virtual ~Library();
 
-	void search(QString query) const;
+	QVector<Song*>* search(QString query) const;
 
 	const QVector<Playlist*>* getPlaylists() const { return playlists; }
 

@@ -37,7 +37,7 @@ App::App(QWidget *parent) : QWidget{parent} {
 
 	// TODO: create blank main widget?
 	// TODO: load last opened playlist from previous session
-	QWidget* mainWidget = new QLabel("\"main widget\"");
+	QWidget* mainWidget = new QLabel("Open a playlist from the pane on the left or search for a song using the search bar above!");
 	addMainWidget(mainWidget, false);
 
 	hLayout->addWidget(playlistContainer);
@@ -79,11 +79,11 @@ QWidget* App::createTopBar(QWidget* parent) {
 
 	// TODO: make button not pressable (or hidden) if there's no previous to go back to
 
-	QLineEdit* search = new QLineEdit(bar);
-	search->setPlaceholderText("Search library");
-	search->setGeometry(10, 10, 80, 30);
-	layout->addWidget(search);
-	// TODO: register with the returnPressed signal
+	this->searchLineEdit = new QLineEdit(bar);
+	searchLineEdit->setPlaceholderText("Search library");
+	searchLineEdit->setGeometry(10, 10, 80, 30);
+	layout->addWidget(searchLineEdit);
+	connect(searchLineEdit, SIGNAL(returnPressed()), this, SLOT(searchLibrary()));
 
 	// settings button
 	b = new QPushButton(bar);
@@ -148,7 +148,7 @@ QWidget* App::createMainContainer(QWidget* parent) {
 	QWidget* container = new QWidget(parent);
 	container->setStyleSheet(QString("background:#eee;"));
 
-	QSizePolicy policy = QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+	QSizePolicy policy = QSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 	policy.setHorizontalStretch(3);
 	container->setSizePolicy(policy);
 
@@ -163,7 +163,8 @@ QWidget* App::createMainContainer(QWidget* parent) {
 }
 
 bool App::addMainWidget(QWidget* mainWidget, bool keepStack, bool hidePlayBar) {
-	if (mainWidget == nullptr) return false;
+	if (mainWidget == nullptr || mainWidgetStack->contains(mainWidget) || mainWidget == currMainWidget)
+		return false;
 
 	QSizePolicy policy = mainWidget->sizePolicy();
 	policy.setHorizontalPolicy(QSizePolicy::MinimumExpanding);
@@ -211,7 +212,24 @@ void App::goBack() {
 
 void App::openPlaylist(Playlist* p) {
 	if (p == nullptr) return;
-	addMainWidget(new QLabel(p->getPlaylistName()));
+	addMainWidget(p->getListGUI());
+}
+
+void App::searchLibrary() {
+	QVector<Song*>* results = this->musicLibrary->search(searchLineEdit->text());
+
+	QScrollArea* w = new QScrollArea(this);
+	w->setFrameShape(QFrame::NoFrame);
+	QWidget* innerWidget = new QWidget(w);
+
+	QVBoxLayout* layout = new QVBoxLayout(innerWidget);
+	for (Song* s : *results) {
+		if (s != nullptr) layout->addWidget(s);
+	}
+	layout->addStretch();
+	w->setWidget(innerWidget);
+
+	addMainWidget(w);
 }
 
 

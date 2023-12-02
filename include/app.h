@@ -5,11 +5,13 @@
 #include<QWidget>
 class QPushButton;
 class QVBoxLayout;
+class QLineEdit;
 template <typename T> class QStack;
 
 // project
 class Library;
 class Playlist;
+class PlaylistContainer;
 
 /**
  * Is the top-level widget that holds all other widgets of the application.
@@ -28,11 +30,13 @@ protected:
 	QWidget* playBar;
 
 	// scrolling area for clickable playlists
-	QWidget* playlistContainer;
-	QVBoxLayout* playlistLayout;
+	PlaylistContainer* playlistContainer;
 
 	// top bar for back button, search bar, and settings button
 	QWidget* topBar;
+
+	// search bar for the entire library
+	QLineEdit* searchLineEdit;
 
 	// layout to add main widgets to
 	QVBoxLayout* mainLayout;
@@ -66,14 +70,6 @@ protected:
 	QWidget* createPlayBar(QWidget* parent=nullptr);
 
 	/**
-	 * Creates the playlist container, which displays clickable playlists to the
-	 * left of the main screen. Also initializes this->playlistLayout.
-	 * @param parent	the parent widget of this new widget
-	 * @return a new playlist container with title and scroll area initialized
-	 */
-	QWidget* createPlaylistContainer(QWidget* parent=nullptr);
-
-	/**
 	 * Creates the main container of the GUI, which contains the search bar layout
 	 * (the top bar) and the swappable main widget. Also initializes this->topBar and
 	 * this->mainLayout (doesn't check if either have been initialized yet).
@@ -91,6 +87,7 @@ public:
 public slots:
 	void goBack();
 	void openPlaylist(Playlist* p);
+	void searchLibrary();
 signals:
 };
 

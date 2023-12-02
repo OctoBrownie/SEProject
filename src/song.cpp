@@ -18,6 +18,7 @@
 Song* Song::createSong(QString path, QWidget* parent) {
 	Song* song = new Song(parent);
 	song->songPath = path;
+	song->albumArt = nullptr;
 
 	//Open the file path, by turning the QString into a char*
 	TagLib::MPEG::File file(path.toStdString().c_str());
@@ -44,9 +45,8 @@ Song* Song::createSong(QString path, QWidget* parent) {
 			//If image successful,
 			if (pictureFrame) {
 				//Save and create the album art
-				QImage albumArt;
-				albumArt.loadFromData(reinterpret_cast<const uchar*>(pictureFrame->picture().data()), pictureFrame->picture().size());
-				song->albumArt = albumArt;
+				song->albumArt = new QImage();
+				song->albumArt->loadFromData(reinterpret_cast<const uchar*>(pictureFrame->picture().data()), pictureFrame->picture().size());
 			}
 		}
 	}
@@ -93,7 +93,7 @@ QString Song::getAlbum() {
 }
 
 QImage* Song::getArt() {
-	return &this->albumArt;
+	return this->albumArt;
 }
 
 QString Song::getSongPath() {
@@ -171,11 +171,11 @@ void Song::makeLayout() {
 	QPixmap map;
 
 	//If the this->albumArt exists, the MP3 stores an image, then get the PixMap from the Image
-	if (!this->albumArt.isNull()) {
-		map = QPixmap::fromImage(this->albumArt).scaled(changedSize, Qt::KeepAspectRatio);
+	if (this->albumArt != nullptr && !this->albumArt->isNull()) {
+		map = QPixmap::fromImage(*this->albumArt).scaled(changedSize, Qt::KeepAspectRatio);
 	} else {
 		//Use the default image, which is stored in the resources
-		QPixmap defaultImage(":/resources/images/DefaultMusicImage.png");
+		QPixmap defaultImage(":/images/noAlbumArt.svg");
 		map = defaultImage.scaled(changedSize, Qt::KeepAspectRatio);
 	}
 
@@ -192,8 +192,8 @@ void Song::makeLayout() {
 	QPushButton* downButton = new QPushButton();
 
 	//Set the icons
-	const QIcon upIcon(":/resources/icons/UpImage.png");
-	const QIcon downIcon(":/resources/icons/DownImage.png");
+	const QIcon upIcon(":/icons/up button.svg");
+	const QIcon downIcon(":/icons/down button.svg");
 
 	//Set the buttons to have the icons and the fixed widths and heights
 	upButton->setIcon(upIcon);
@@ -232,7 +232,7 @@ void Song::makeLayout() {
 
 	//Set this->widget to be a widget with the created layout.
 	this->widget = new QWidget();
-
+	this->widget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
 	this->widget->setLayout(outerLayout);
 }
 

@@ -1,17 +1,16 @@
 #ifndef TEXTMETADATA_H
 #define TEXTMETADATA_H
 
-#include<QVBoxLayout>
-
+#include<QWidget>
 class QLineEdit;
 class QLabel;
+class QVBoxLayout;
 
 //Text Metadata class. Displays GUI for playlist metadata
-class TextMetadata: public QVBoxLayout
-{
+class TextMetadata: public QWidget {
 public:
     // Constructor
-    TextMetadata(QString pName, QString uName, qint64 duration);
+	TextMetadata(QString pName, QString uName, qint64 duration, QWidget* parent=nullptr);
 
     // Getters
     QLineEdit* getPlaylistTitle();
@@ -28,6 +27,9 @@ private:
 
     //GUI element that displays the duration
     QLabel* duration;
+
+	// layout for the entire widget
+	QVBoxLayout* layout;
 };
 
 #endif // TEXTMETADATA_H
