@@ -197,12 +197,12 @@ void Song::makeLayout() {
 
 	//Set the buttons to have the icons and the fixed widths and heights
 	upButton->setIcon(upIcon);
-	upButton->setFixedWidth(100);
-	upButton->setFixedHeight(30);
+//	upButton->setFixedWidth(100);
+//	upButton->setFixedHeight(30);
 
 	downButton->setIcon(downIcon);
-	downButton->setFixedWidth(100);
-	downButton->setFixedHeight(30);
+//	downButton->setFixedWidth(100);
+//	downButton->setFixedHeight(30);
 
 	//Assign to the stored class value
 	this->upButton = upButton;
@@ -238,12 +238,6 @@ void Song::makeLayout() {
 
 //What to do when the mouse is clicked
 void Song::mousePressEvent(QMouseEvent *event) {
-    //If the Song is already selected, unselect it, and emit a signal to tell the playlist that it no longer has a selected song. Send the position of the song, so the playlist knows what to do.
-	if (this->selected == true) {
-		this->setSelected(false);
-    //If the Song is not already selected, select it, and emit a signal to tell the playlist to select this song instead. Send the position of the song, so the playlist knows what to do.
-    } else {
-		this->setSelected(true);
-    }
+	this->setSelected(!this->selected);
 	emit selectedSong(this->pPosition, this->selected);
 }

@@ -71,8 +71,8 @@ protected:
     //Calculate the playlist duration.
     void calculatePlaylistDuration();
 
-    //Move a song at a given position either up (1) or down (0)
-	void moveSong(int pos, int status);
+	//Move a song at a given position (make it go up or down one)
+	void moveSong(int pos, bool up);
 
     //Playlist path
     QString openedPlaylist;

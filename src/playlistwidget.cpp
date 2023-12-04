@@ -13,8 +13,12 @@
 #define DEFAULT_NAME_TEXT "[playlist name]"
 
 PlaylistWidget::PlaylistWidget(Playlist* p, QWidget* parent) : QWidget{parent} {
+	setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Minimum);
 	nameLabel = new QLabel(this);
+	nameLabel->setWordWrap(true);
+
 	durationLabel = new QLabel(this);
+	durationLabel->setWordWrap(true);
 
 	QHBoxLayout* layout = new QHBoxLayout(this);
 	layout->addWidget(nameLabel);

@@ -14,22 +14,25 @@ PlaylistContainer::PlaylistContainer(App *a, Library* lib, QWidget* parent)
 	this->widgets = new QVector<PlaylistWidget*>();
 	this->selected = -1;
 
-	QSizePolicy policy = QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+	QSizePolicy policy = QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Ignored);
 	policy.setHorizontalStretch(1);
 	this->setSizePolicy(policy);
 
-	QVBoxLayout* layout = new QVBoxLayout(this);
-	layout->setSpacing(0);
+	QVBoxLayout* l = new QVBoxLayout(this);
+	l->setSpacing(0);
+	l->addWidget(new QLabel("Playlists"));
 
-	layout->addWidget(new QLabel("Playlists"));
+	QScrollArea* scrollArea = new QScrollArea(this);
+//	scrollArea->setFrameShape(QFrame::NoFrame);
 
-	QScrollArea* scrollArea = new QScrollArea();
-	scrollArea->setFrameShape(QFrame::NoFrame);
+	QWidget* scrollWidget = new QWidget(scrollArea);
+	scrollWidget->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
+	this->scrollLayout = new QVBoxLayout(scrollArea);
+	scrollLayout->setAlignment(Qt::AlignTop);
 
-	this->layout = new QVBoxLayout(scrollArea);
-	policy = QSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding);
-	scrollArea->setSizePolicy(policy);
-	layout->addWidget(scrollArea);
+	scrollArea->setSizePolicy(QSizePolicy::MinimumExpanding, QSizePolicy::Ignored);
+	scrollArea->setWidget(scrollWidget);
+	l->addWidget(scrollArea);
 
 	refreshPlaylists();
 }
@@ -38,11 +41,11 @@ void PlaylistContainer::refreshPlaylists() {
 	// TODO: optimize with PlaylistWidget::setPlaylist()
 
 	// delete all playlists currently in the layout
-	QLayoutItem* i = this->layout->takeAt(0);
+	QLayoutItem* i = this->scrollLayout->takeAt(0);
 	while(i != nullptr) {
 		delete i->widget();
 		delete i;
-		i = this->layout->takeAt(0);
+		i = this->scrollLayout->takeAt(0);
 	}
 	widgets->clear();
 
@@ -54,9 +57,9 @@ void PlaylistContainer::refreshPlaylists() {
 		widgets->append(pWidget);
 		connect(pWidget, SIGNAL(leftClicked(PlaylistWidget*)), this, SLOT(itemClicked(PlaylistWidget*)));
 		connect(pWidget, SIGNAL(openPlaylist(Playlist*)), app, SLOT(openPlaylist(Playlist*)));
-		this->layout->addWidget(pWidget);
+		this->scrollLayout->addWidget(pWidget);
 	}
-	this->layout->addStretch();
+	this->scrollLayout->addStretch();
 }
 
 void PlaylistContainer::itemClicked(PlaylistWidget* w) {

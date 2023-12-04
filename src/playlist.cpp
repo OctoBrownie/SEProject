@@ -316,9 +316,8 @@ void Playlist::calculatePlaylistDuration() {
 
 
 //Move a song up or down in the playlist, based on the status
-void Playlist::moveSong(int pos, int status) {
-	//If the status is 1 (up button)
-	if (status == 1) {
+void Playlist::moveSong(int pos, bool up) {
+	if (up) {
 		//Ensure the elements do not ascend above 0, which is impossible
 		if (pos - 1 >= 0) {
 			//Save the widget temporarily
@@ -344,8 +343,8 @@ void Playlist::moveSong(int pos, int status) {
 			this->songsListLayout->removeWidget((*allSongs)[pos]);
 
 			//Insert them in the reverse position; add the item to be pushed towards the back first
-			this->songsListLayout->insertWidget(pos - 1, (*allSongs)[pos]);
-			this->songsListLayout->insertWidget(pos - 1, (*allSongs)[pos - 1]);
+			this->songsListLayout->insertWidget(pos, (*allSongs)[pos]);
+			this->songsListLayout->insertWidget(pos, (*allSongs)[pos - 1]);
 		}
 	} else {
 		//Ensure the elements do not descend below the maximum size, which is impossible
@@ -373,8 +372,8 @@ void Playlist::moveSong(int pos, int status) {
 			this->songsListLayout->removeWidget((*allSongs)[pos]);
 
 			//Insert them in the reverse position; add the item to be pushed back first
-			this->songsListLayout->insertWidget(pos, (*allSongs)[pos + 1]);
-			this->songsListLayout->insertWidget(pos, (*allSongs)[pos]);
+			this->songsListLayout->insertWidget(pos + 1, (*allSongs)[pos + 1]);
+			this->songsListLayout->insertWidget(pos + 1, (*allSongs)[pos]);
 		}
 	}
 }

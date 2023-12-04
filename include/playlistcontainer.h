@@ -32,7 +32,7 @@ protected:
 	QVector<PlaylistWidget*>* widgets;
 
 	// layout for inside the scroll area (holds playlist widgets and a stretch)
-	QVBoxLayout* layout;
+	QVBoxLayout* scrollLayout;
 
 	// index of which widget is currently selected
 	qint64 selected;
