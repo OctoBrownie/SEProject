@@ -1,13 +1,14 @@
 #ifndef TEXTMETADATA_H
 #define TEXTMETADATA_H
 
-#include<QVBoxLayout>
+#include <QWidget>
 
 class QLineEdit;
 class QLabel;
+class QVBoxLayout;
 
 //Text Metadata class. Displays GUI for playlist metadata
-class TextMetadata: public QVBoxLayout
+class TextMetadata: public QWidget
 {
 public:
     // Constructor

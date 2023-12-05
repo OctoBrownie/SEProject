@@ -15,11 +15,11 @@ public:
     //Constructor
     Playlist(QString filename=nullptr);
 
+    //Destructor
+    ~Playlist();
+
     //Save the playlist to a specified filename
     void savePlaylist(QString* filename);
-
-	// save and overwrite the playlist in the current file
-	void save() { savePlaylist(&openedPlaylist); }
 
     //Add a song to a playlist
     void addSong(Song* newSong);
@@ -27,8 +27,6 @@ public:
     //Remove a song from a playlist, based on a specific position
     void removeSong(qint64 position);
 
-    //Return the currently selected song number
-    qint64 getSelectedSong();
 
     //Setters
     void setImagePath(QString imagePath);
@@ -44,17 +42,24 @@ public:
     qint64 getDuration();
     QString getImagePath();
 
+    qint64 getSelectedSong();
+
     PictureBox* getPictureBox();
     TextMetadata* getTextMetadata();
     QWidget* getListGUI();
 
     QVector<Song*>* getSongList();
 
-    QVBoxLayout* getLayout() { return this->songsListLayout;};
+    QVBoxLayout* getLayout();
 
 signals:
+    //When a new song is selected, this signal is emitted to notify the player of the new song.
     void newSelectedSong(QString songPath, QString title, QString artist, QString album, QImage* songImage);
+
+    //When a song is added, send out this signal. Used to update search results when songs are added.
     void newSongAdded();
+
+    //When a song is removed, send out this signal (to stop the opened stream in the MP3 Player)
     void songRemoved();
 
 protected:
@@ -85,8 +90,8 @@ protected:
     //Vector of all the songs
     QVector<Song*> allSongs;
 
-    //Pointer in vector to current song, set to -1 as the first value is 0. This tells the system when to not look for a value.
-    qint64 selectedSong = -1;
+    //Pointer in vector to current song, set to -5, as this marks that no song has been selected.
+    qint64 selectedSong = -5;
 
 
     //Items for the picture box item

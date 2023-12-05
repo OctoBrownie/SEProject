@@ -2,6 +2,7 @@
 #include<QBoxLayout>
 #include<QLabel>
 #include<QPushButton>
+#include <QFile>
 
 
 //TagLib Libraries
@@ -29,8 +30,21 @@ Song::Song(QString path): QWidget()
 
         //Get title, artists, album, and duration. TagLib only returns StdStrings, and tag->title() needs to be reformatted into becoming a std::String
         this->title = QString::fromStdString(tag->title().to8Bit(true));
+        qDebug() << "This is the title: " << this->title;
+        if (this->title.isNull()) {
+            this->title = this->songPath;
+        }
+
         this->artists = QString::fromStdString(tag->artist().to8Bit(true));
+        if (this->artists.isNull()) {
+            this->artists = "No Artist";
+        }
+
         this->album = QString::fromStdString(tag->album().to8Bit(true));
+        if (this->album.isNull()) {
+            this->album = "No Album";
+        }
+
         this->duration = file.audioProperties()->lengthInSeconds();
 
         //Attempt to see if the associated image exists.
@@ -49,6 +63,10 @@ Song::Song(QString path): QWidget()
                 this->albumArt = albumArt;
             }
         }
+    } else {
+        this->title = this->songPath;
+        this->artists = "No Artist";
+        this->album = "No Album";
     }
 
     //Create the widget that represents the song object, and save to this->widget
@@ -63,7 +81,10 @@ Song::Song(QString path): QWidget()
     this->setFixedHeight(150);
 }
 
-
+//Public facing version of the protected mousePressEvent method
+void Song::triggerMousePressEvent() {
+    this->mousePressEvent(nullptr);
+}
 
 /*
 
@@ -246,15 +267,3 @@ void Song::mousePressEvent(QMouseEvent *event) {
     }
 }
 
-void Song::triggerMousePressEvent() {
-    //If the Song is already selected, unselect it, and emit a signal to tell the playlist that it no longer has a selected song. Send the position of the song, so the playlist knows what to do.
-    if (this->selected == true) {
-        this->setSelected(false);
-        emit selectedSong(this->pPosition, false);
-
-        //If the Song is not already selected, select it, and emit a signal to tell the playlist to select this song instead. Send the position of the song, so the playlist knows what to do.
-    } else {
-        this->setSelected(true);
-        emit selectedSong(this->pPosition, false);
-    }
-}

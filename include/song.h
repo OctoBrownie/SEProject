@@ -50,6 +50,7 @@ signals:
     //A signal that is sent out when one of the buttons (up (1) or down (0)) is clicked, sending the song position and button type.
     void buttonClicked(int pos, int status);
 
+    //Signal used to notify clones when a new song has been selected from the playlist, to update searchWindow output
     void cloneHelper(bool selected);
 
 private:
@@ -74,7 +75,7 @@ private:
     //The position of the song in the playlist
     qint64 pPosition;
 
-    //Determines if a song is selected or not; not needed in future implementations
+    //Determines if a song is selected or not
     bool selected = false;
 
     //This stores the widget that represents the song, that is stored inside the song Widget. This is only done to allow proper highlighting when clicked. It's a necessary evil.

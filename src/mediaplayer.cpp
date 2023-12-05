@@ -25,15 +25,18 @@ extern "C" {
 #include<QAudioOutput>
 #include<QAudioFormat>
 
-
+#include <QWidget>
+#include <QLabel>
+#include "playlist.h"
 #include "mediaplayer.h"
 
 #define DEFAULT_BUFFER_SIZE 4096
 
 
-
+//Media Player class, inherits from QWidget
 MediaPlayer::MediaPlayer(QWidget* parent): QWidget(parent)
 {
+    //Media processing variables
     this->currFormatCtx = nullptr;
     this->currCodec = nullptr;
     this->currCodecCtx = nullptr;
@@ -45,24 +48,33 @@ MediaPlayer::MediaPlayer(QWidget* parent): QWidget(parent)
     this->currFrame = av_frame_alloc();
     this->currSample = -1;
 
+    //Create a layout for the MP3 player
     QVBoxLayout* playerLayout = new QVBoxLayout();
     playerLayout->setAlignment(Qt::AlignHCenter);
+
+    //Create layouts for the buttons
     QHBoxLayout* buttonLayout = new QHBoxLayout();
+
+    //Create layout for the data from the song
     QVBoxLayout* songDataLayout = new QVBoxLayout();
 
+    //Set generic titles and images for the default "loaded song"
     this->currentSongTitle = new QLabel("Title");
     this->currentSongArtist = new QLabel("Artist");
     this->currentSongAlbum = new QLabel("Album");
     this->currentImage = new QLabel();
     this->currentSongArt = new QImage();
+    //Create the image, which sets this->currentImage
     this->generateImage(this->currentSongArt);
 
+    //Add the newly created data to the song data section
     songDataLayout->addWidget(this->currentImage);
     songDataLayout->addWidget(this->currentSongTitle);
     songDataLayout->addWidget(this->currentSongArtist);
     songDataLayout->addWidget(this->currentSongAlbum);
     songDataLayout->setAlignment(Qt::AlignHCenter);
 
+    //Create a frame, and display the proper data
     QFrame* dataDisplay = new QFrame();
     dataDisplay->setFixedSize(600, 600);
     dataDisplay->setFrameStyle(QFrame::Box);
@@ -70,6 +82,7 @@ MediaPlayer::MediaPlayer(QWidget* parent): QWidget(parent)
 
     dataDisplay->setLayout(songDataLayout);
 
+    //Create all of the buttons, and add them to one widget
     QWidget* buttons = new QWidget();
     QPushButton* playbutton = new QPushButton();
     QPushButton* pausebutton = new QPushButton();
@@ -103,6 +116,7 @@ MediaPlayer::MediaPlayer(QWidget* parent): QWidget(parent)
     buttonLayout->addWidget(skipbutton);
     buttonLayout->addWidget(eqbutton);
 
+    //Ties the buttons so that when they are clicked, they perform a function, using the connect API
     connect(skipbutton, &QPushButton::clicked, this, &MediaPlayer::skip);
     connect(backbutton, &QPushButton::clicked, this, &MediaPlayer::rewind);
     connect(playbutton, SIGNAL (clicked()), this, SLOT (play()));
@@ -110,27 +124,38 @@ MediaPlayer::MediaPlayer(QWidget* parent): QWidget(parent)
 
     buttons->setLayout(buttonLayout);
 
+    //Add the metadata element, the buttons, and set this to display theGUI environment
     playerLayout->addWidget(dataDisplay);
     playerLayout->addWidget(buttons);
-    setLayout(playerLayout);
+    this->setLayout(playerLayout);
 
+    //Set it so that the signal callBackFinished (the song finishes playing) it skips to the next song.
     connect(this, &MediaPlayer::callBackFinished, this, &MediaPlayer::skip);
-    connect(this, &MediaPlayer::closeStream, this->currentPlaylist, &Playlist::songRemoved);
+
+    //Set the stream to close when the current song is removed from the playlist
+    connect(this->currentPlaylist, &Playlist::songRemoved, this, &MediaPlayer::closeStream);
 }
 
-void MediaPlayer::swapLoop() {
-    if (!this->isLooped) {
-        this->isLooped = true;
-    } else {
-        this-> isLooped = false;
-    }
+//Destructor
+MediaPlayer::~MediaPlayer() {
+    closeStream();
+    av_packet_free(&currPacket);
+    av_frame_free(&currFrame);
 }
 
+/*  --------------------------
+ *
+ *      Public Functions
+ *
+ *  -------------------------- */
+
+//Set the playlist, and link the playlist so that when a song is selected in a playlist, it is set in the media player
 void MediaPlayer::setPlaylist(Playlist* playlist) {
     this->currentPlaylist = playlist;
     connect(this->currentPlaylist, &Playlist::newSelectedSong, this, &MediaPlayer::updateCurrentSong);
 }
 
+//Create a PixMap image from the image data
 void MediaPlayer::generateImage(QImage* songImage)
 {
     QSize changedSize(450,450);
@@ -148,24 +173,47 @@ void MediaPlayer::generateImage(QImage* songImage)
     this->currentImage->setPixmap(map);
 }
 
-
+//Skip the current song
 void MediaPlayer::skip() {
-    if (this->currentPlaylist->getSelectedSong() == -1)
+    //If no song is currently selected, ignore
+    if (this->currentPlaylist->getSelectedSong() == -5)
         return;
+
+    //Else, skip to the next song. This function will set it to -5 if skip goes past the end
     this->currentPlaylist->setSelectedSong(this->currentPlaylist->getSelectedSong() + 1, false);
+
+    //Close the current stream, and then play the new stream
     this->closeStream();
     this->play();
 }
 
+//Rewind current song
 void MediaPlayer::rewind() {
-    if (this->currentPlaylist->getSelectedSong() == -1)
+    //If no song is currently selected, ignore
+    if (this->currentPlaylist->getSelectedSong() == -5)
         return;
+
+    //Set the song to the previous. The function will set it to -5 if rewide goes before the song began
     this->currentPlaylist->setSelectedSong(this->currentPlaylist->getSelectedSong() - 1, false);
+
+    //Close the current stream and then play the new stream
     this->closeStream();
     this->play();
 }
 
+//Just close the stream, a public interface for a private function
+void MediaPlayer::killStream() {
+    this->closeStream();
+}
 
+
+/*  -----------------
+ *
+ *      Protected
+ *
+ *  ----------------- */
+
+//Update the currently playing song, needs to be done as a part of the connect API with the playlist. Essentially just does the constructor, but allows new titles
 void MediaPlayer::updateCurrentSong(QString songPath, QString title, QString artist, QString album, QImage* songImage) {
     this->currentSongPath = songPath;
     this->currentSongTitle->setText(title);
@@ -181,12 +229,16 @@ void MediaPlayer::updateCurrentSong(QString songPath, QString title, QString art
 
 
 
-MediaPlayer::~MediaPlayer() {
-    closeStream();
-    av_packet_free(&currPacket);
-    av_frame_free(&currFrame);
+//Set the status of the loop variable back and forth
+void MediaPlayer::swapLoop() {
+    if (!this->isLooped) {
+        this->isLooped = true;
+    } else {
+        this-> isLooped = false;
+    }
 }
 
+//Close the current decoding stream; no more file to audio
 void MediaPlayer::closeStream() {
     if (audioDevice > 0) {
         SDL_PauseAudioDevice(audioDevice, true);
@@ -198,6 +250,8 @@ void MediaPlayer::closeStream() {
     avformat_close_input(&currFormatCtx);
 }
 
+
+//Create a new stream,allowing file to audio
 bool MediaPlayer::openStream() {
     // in case another stream was open before
     closeStream();
@@ -250,6 +304,8 @@ bool MediaPlayer::openStream() {
     return true;
 }
 
+
+//Play a song, by disabling the pause
 void MediaPlayer::play() {
     if (this->currentSongPath == "") {
         return;
@@ -262,6 +318,7 @@ void MediaPlayer::play() {
     SDL_PauseAudioDevice(audioDevice, false);
 }
 
+//Pause a song, by enabling the pause.
 void MediaPlayer::pause() {
     if (this->currentSongPath == "") {
         return;
@@ -269,6 +326,8 @@ void MediaPlayer::pause() {
     if (audioDevice) SDL_PauseAudioDevice(audioDevice, true);
 }
 
+
+//This function processes the audio, and if it reads the end of the MP3 file, it will skip to the next song (auto play feature)
 void MediaPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
     MediaPlayer* player = (MediaPlayer*) userdata;
     bool error = false;

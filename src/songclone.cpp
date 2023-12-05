@@ -1,5 +1,11 @@
+
 #include "songclone.h"
 
+#include "song.h"
+#include <QBoxLayout>
+#include <QLabel>
+
+//Constructor
 SongClone::SongClone(Song* song)
 {
     //Create the outer layout (has two halves; image on the left, text on the right)
@@ -60,7 +66,10 @@ SongClone::SongClone(Song* song)
 
     this->setSelected(song->getSelected());
 
+    //When the clone is clicked, essentially cause a "click" to happen in two places
     connect(this, &SongClone::clicked, song, &Song::triggerMousePressEvent);
+
+    //When the song is clicked, change the clone's selected status
     connect(song, &Song::cloneHelper, this, &SongClone::setSelected);
 }
 

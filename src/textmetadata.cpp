@@ -1,4 +1,3 @@
-#include<QWidget>
 #include<QVBoxLayout>
 #include<QLabel>
 #include<QLineEdit>
@@ -7,7 +6,7 @@
 
 
 //Constructor
-TextMetadata::TextMetadata(QString pName, QString uName, qint64 duration): QVBoxLayout()
+TextMetadata::TextMetadata(QString pName, QString uName, qint64 duration): QWidget()
 {
     //Create a box where the user can edit the playlist title.
     QLineEdit* playlistTitle = new QLineEdit;
@@ -44,9 +43,11 @@ TextMetadata::TextMetadata(QString pName, QString uName, qint64 duration): QVBox
     this->duration = length;
 
     //Add all of them to the QVBoxLayout
-    addWidget(playlistTitle);
-    addWidget(username);
-    addWidget(length);
+    QVBoxLayout* finalLayout = new QVBoxLayout();
+    finalLayout->addWidget(playlistTitle);
+    finalLayout->addWidget(username);
+    finalLayout->addWidget(length);
+    this->setLayout(finalLayout);
 }
 
 
@@ -70,9 +71,9 @@ void TextMetadata::updateDurationLabel(qint64 duration) {
 
     this->duration = new QLabel("Length: " + QString::number(duration/60) + " minutes");
 
-    removeWidget(length);
+    this->layout()->removeWidget(length);
 
-    addWidget(this->duration);
+    this->layout()->addWidget(this->duration);
 
     delete length;
 }
