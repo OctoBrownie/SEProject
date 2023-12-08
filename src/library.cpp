@@ -10,18 +10,17 @@
 // project
 #include "library.h"
 #include "playlist.h"
+#include "song.h"
 
 #define PLAYLIST_DIR_FILE "playlistdirs.txt"
 #define SONG_DIR_FILE "songdirs.txt"
 
-Library::Library(QObject* parent) : QObject(parent) {
+Library::Library(QObject* parent, MusicPlayer* p) : QObject{parent}, player{p} {
 	// init all vectors
 	this->playlistDirs = new QVector<QString*>();
 	this->playlists = new QVector<Playlist*>();
 	this->songDirs = new QVector<QString*>();
 	this->songs = new QVector<Song*>();
-
-	playlists->append(Playlist::createPlaylist("C:/Users/Crystal/Downloads/asdf.pa"));
 
 	// load songs and playlists from file
 	loadSongDirs();
@@ -136,7 +135,7 @@ void Library::indexPlaylists() {
 		if (path == nullptr) continue;
 		QDirIterator iter(*path, QStringList() << "*.pa", QDir::NoFilter, QDirIterator::Subdirectories);
 		while (iter.hasNext()) {
-			temp = Playlist::createPlaylist(iter.next());
+			temp = Playlist::createPlaylist(iter.next(), player, this);
 			if (temp == nullptr) continue;
 			this->playlists->append(temp);
 		}

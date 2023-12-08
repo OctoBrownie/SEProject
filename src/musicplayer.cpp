@@ -20,6 +20,7 @@ extern "C" {
 #include<QAudioFormat>
 
 #include "musicplayer.h"
+#include "song.h"
 
 
 #define DEFAULT_BUFFER_SIZE 4096
@@ -67,11 +68,19 @@ MusicPlayer::~MusicPlayer() {
 	av_frame_free(&currFrame);
 }
 
+void MusicPlayer::setSong(Song* s, bool start) {
+	currSong = s;
+
+	closeStream();
+	if (start) play();
+}
+
 void MusicPlayer::closeStream() {
 	if (audioDevice > 0) {
 		SDL_PauseAudioDevice(audioDevice, true);
 		SDL_CloseAudioDevice(audioDevice);
 		audioDevice = 0;
+		emit playbackStopped();
 	}
 
 	avcodec_free_context(&currCodecCtx);
@@ -83,9 +92,9 @@ bool MusicPlayer::openStream() {
 	closeStream();
 
 	// init FFMPEG decoding things
-	const char* file = this->lineEdit->text().toLocal8Bit().data();
+	std::string file = this->currSong->getSongPath().toStdString();
 
-	if (avformat_open_input(&currFormatCtx, file, nullptr, nullptr) != 0) {
+	if (avformat_open_input(&currFormatCtx, file.c_str(), nullptr, nullptr) != 0) {
 		// couldn't open the file at all
 		std::cerr << "Couldn't open the file (path: \"" << file << "\")." << std::endl;
 		return -1;

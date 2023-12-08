@@ -7,7 +7,8 @@ class QLabel;
 class QVBoxLayout;
 
 #include "textmetadata.h"
-#include "song.h"
+class MusicPlayer;
+class Song;
 
 
 //Playlist class
@@ -16,7 +17,7 @@ public:
 	// constructor for outside classes, processes the given file
 	// will return a blank playlist if the file is null, will return nullptr if
 	// the file is invalid
-	static Playlist* createPlaylist(QString filename=nullptr, QObject* parent=nullptr);
+	static Playlist* createPlaylist(QString filename=nullptr, MusicPlayer* player=nullptr, QObject* parent=nullptr);
 	virtual ~Playlist();
 
 	//Save the playlist to a specified filename
@@ -63,7 +64,7 @@ protected:
 	Q_OBJECT
 
 	// constructor for this class
-	Playlist(QObject* parent = nullptr);
+	Playlist(MusicPlayer* p = nullptr, QObject* parent = nullptr);
 
     //Turn the playlist data into a GUI output
 	void createPlaylistOutput();
@@ -74,7 +75,10 @@ protected:
 	//Move a song at a given position (make it go up or down one)
 	void moveSong(int pos, bool up);
 
-    //Playlist path
+
+	MusicPlayer* musicPlayer;
+
+	//Playlist path
     QString openedPlaylist;
 
     //Name, username, and duration

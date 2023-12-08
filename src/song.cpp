@@ -2,6 +2,7 @@
 #include<QBoxLayout>
 #include<QLabel>
 #include<QPushButton>
+#include<QMouseEvent>
 
 
 //TagLib Libraries
@@ -80,31 +81,31 @@ Song::Song(QWidget* parent): QWidget(parent) {}
 
 */
 
-QString Song::getSongTitle() {
+QString Song::getSongTitle() const {
     return this->title;
 }
 
-QString Song::getArtist() {
+QString Song::getArtist() const {
     return this->artists;
 }
 
-QString Song::getAlbum() {
+QString Song::getAlbum() const {
     return this->album;
 }
 
-QImage* Song::getArt() {
+QImage* Song::getArt() const {
 	return this->albumArt;
 }
 
-QString Song::getSongPath() {
+QString Song::getSongPath() const {
     return this->songPath;
 }
 
-qint64 Song::getDuration() {
+qint64 Song::getDuration() const {
     return this->duration;
 }
 
-qint64 Song::getPosition() {
+qint64 Song::getPosition() const {
     return this->pPosition;
 }
 
@@ -240,4 +241,12 @@ void Song::makeLayout() {
 void Song::mousePressEvent(QMouseEvent *event) {
 	this->setSelected(!this->selected);
 	emit selectedSong(this->pPosition, this->selected);
+}
+
+void Song::mouseDoubleClickEvent(QMouseEvent *event) {
+	this->setSelected(false);
+	if (event->button() == Qt::LeftButton) {
+		// should start playing the song
+		emit playSong(this);
+	}
 }

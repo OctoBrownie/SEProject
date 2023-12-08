@@ -37,7 +37,7 @@ protected:
 	Equalizer* equalizer;
 
 	// current song being played (null if nothing is being played)
-	Song* currSong;
+	const Song* currSong;
 
 	// line edit widget representing which song the user wants to play
 	QLineEdit* lineEdit;
@@ -86,6 +86,8 @@ public:
 	 */
 	virtual ~MusicPlayer();
 
+	const Song* getSong() const { return currSong; }
+
 	/**
 	 * SDL callback for filling the audio buffer.
 	 * @param userdata	must be an Mp3Player instance for this to work
@@ -104,14 +106,18 @@ public slots:
 	 * Pauses audio playback.
 	 */
 	void pause();
+
+	void setSong(Song* s, bool start=true);
 signals:
 	/**
-	 * Emitted when playback has started.
+	 * Emitted when playback has started, including when new songs start (even if
+	 * it was playing a previous song).
 	 */
 	void playbackStarted();
 
 	/**
-	 * Emitted when playback has stopped. Is not emitted when the object is destroyed.
+	 * Emitted when playback has stopped, including when a song ends (even if another
+	 * is queued up).
 	 */
 	void playbackStopped();
 };

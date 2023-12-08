@@ -7,15 +7,21 @@
 #include<QLineEdit>
 
 #include "playlist.h"
+#include "song.h"
+#include "musicplayer.h"
+
+#include<iostream>
 
 //Playlist constructor
-Playlist::Playlist(QObject* parent) : QObject(parent) {
+Playlist::Playlist(MusicPlayer* player, QObject* parent)
+	: QObject{parent}, musicPlayer{player} {
 	songsListGUI = nullptr;
 	allSongs = new QVector<Song*>();
+	if (player == nullptr) std::cout << "null in playlist" << std::endl;
 }
 
-Playlist* Playlist::createPlaylist(QString filename, QObject* parent) {
-	Playlist* playlist = new Playlist(parent);
+Playlist* Playlist::createPlaylist(QString filename, MusicPlayer* player, QObject* parent) {
+	Playlist* playlist = new Playlist(player, parent);
 
 	if (filename == nullptr) return playlist;
 
@@ -63,6 +69,8 @@ Playlist* Playlist::createPlaylist(QString filename, QObject* parent) {
 
 		//Connect to the button clicked signal, to determine when the up or down button is clicked.
 		connect(newSong, &Song::buttonClicked, playlist, &Playlist::moveSong);
+
+		if (player != nullptr) connect(newSong, SIGNAL(playSong(Song*)), player, SLOT(setSong(Song*)));
 	}
 
 	file->close();
@@ -124,6 +132,8 @@ void Playlist::addSong(Song* newSong) {
 
     //Connect with the button clicked song, so when either the up or down button is clicked, the playlist can respond.
     connect(newSong, &Song::buttonClicked, this, &Playlist::moveSong);
+
+	if (musicPlayer != nullptr) connect(newSong, SIGNAL(playSong(Song*)), musicPlayer, SLOT(setSong(Song*)));
 }
 
 //Remove a song

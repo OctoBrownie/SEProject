@@ -4,6 +4,7 @@
 #include<QObject>
 #include<QVector>
 
+class MusicPlayer;
 class Playlist;
 class Song;
 
@@ -16,6 +17,8 @@ protected:
 	QVector<Song*>* songs;
 	QVector<QString*>* songDirs;
 
+	MusicPlayer* player;
+
 
 	void loadSongDirs();
 	void loadPlaylistDirs();
@@ -24,7 +27,7 @@ protected:
 	void indexPlaylists();
 
 public:
-	Library(QObject* parent=nullptr);
+	Library(QObject* parent=nullptr, MusicPlayer* p=nullptr);
 	virtual ~Library();
 
 	QVector<Song*>* search(QString query) const;

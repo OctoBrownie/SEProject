@@ -9,8 +9,11 @@
 
 #include "app.h"
 #include "library.h"
+#include "song.h"
 #include "playlist.h"
 #include "playlistcontainer.h"
+#include "playerwidget.h"
+#include "musicplayer.h"
 
 App::App(QWidget *parent) : QWidget{parent} {
 	setWindowState(Qt::WindowMaximized);
@@ -18,7 +21,8 @@ App::App(QWidget *parent) : QWidget{parent} {
 
 	this->mainWidgetStack = new QStack<QWidget*>();
 	this->currMainWidget = nullptr;
-	this->musicLibrary = new Library(this);
+	this->musicPlayer = new MusicPlayer(this);
+	this->musicLibrary = new Library(this, musicPlayer);
 
 	// top level layout with everything in it
 	QVBoxLayout *topLayout = new QVBoxLayout(this);
@@ -33,7 +37,7 @@ App::App(QWidget *parent) : QWidget{parent} {
 
 	QWidget* vWidget = createMainContainer(hWidget);	// search/main widget container
 	this->playlistContainer = new PlaylistContainer(this, musicLibrary, hWidget);	// just playlists
-	this->playBar = createPlayBar(this);	// active song (+ play/pause)
+	this->playBar = new PlayerWidget(musicPlayer, this);	// active song (+ play/pause)
 
 	// TODO: create blank main widget?
 	// TODO: load last opened playlist from previous session

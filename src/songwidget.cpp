@@ -3,10 +3,10 @@
 #include<QHBoxLayout>
 #include<QMouseEvent>
 
-#include "customsongwidget.h"
+#include "songwidget.h"
 #include "song.h"
 
-CustomSongWidget::CustomSongWidget(Song* song): QWidget() {
+SongWidget::SongWidget(Song* song): QWidget() {
 	QHBoxLayout* outerLayout = new QHBoxLayout();
 	QVBoxLayout* innerLayout = new QVBoxLayout();
 	QLabel* titleText = new QLabel(song->getSongTitle());
@@ -41,12 +41,21 @@ CustomSongWidget::CustomSongWidget(Song* song): QWidget() {
 	setLayout(outerLayout);
 }
 
-void CustomSongWidget::mousePressEvent(QMouseEvent *event) {
+void SongWidget::mousePressEvent(QMouseEvent *event) {
 	fromSong->setSelected(!this->selected);
 }
 
+void SongWidget::mouseDoubleClickEvent(QMouseEvent *event) {
+	fromSong->setSelected(false);
 
-void CustomSongWidget::setBackground(int value) {
+	if (event->button() == Qt::LeftButton) {
+		// should start playing the song
+		emit playSong(this->fromSong);
+	}
+}
+
+
+void SongWidget::setBackground(int value) {
 	if (value == 1) setStyleSheet("background-color:#73b2e4");
 	else setStyleSheet("background-color: #F0F0F0");
 

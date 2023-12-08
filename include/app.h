@@ -12,6 +12,7 @@ template <typename T> class QStack;
 class Library;
 class Playlist;
 class PlaylistContainer;
+class MusicPlayer;
 
 /**
  * Is the top-level widget that holds all other widgets of the application.
@@ -49,6 +50,9 @@ protected:
 
 	// contains the entire searchable music library
 	Library* musicLibrary;
+
+	// music player
+	MusicPlayer* musicPlayer;
 
 
 

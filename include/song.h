@@ -14,14 +14,14 @@ public:
 	static Song* createSong(QString path, QWidget* parent = nullptr);
 
     //Getters
-    QString getSongPath();
-    QString getSongTitle();
-    QString getArtist();
-    QString getAlbum();
-	QImage* getArt();
-    qint64 getDuration();
-    qint64 getPosition();
-	bool getSelected() { return selected; }
+	QString getSongPath() const;
+	QString getSongTitle() const;
+	QString getArtist() const;
+	QString getAlbum() const;
+	QImage* getArt() const;
+	qint64 getDuration() const;
+	qint64 getPosition() const;
+	bool getSelected() const { return selected; }
 
     QPushButton* getUpButton();
     QPushButton* getDownButton();
@@ -39,6 +39,7 @@ protected:
 
     //Determines what happens when a mouse is pressed on the widget
     void mousePressEvent(QMouseEvent *event) override;
+	void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 	// Method to create the song widget (stored in this->widget).
 	// Only done to allow accurate highlighting when selected by a user.
@@ -51,6 +52,9 @@ signals:
 
     //A signal that is sent out when one of the buttons (up (1) or down (0)) is clicked, sending the song position and button type.
     void buttonClicked(int pos, int status);
+
+	// signal sent when this current song should be played
+	void playSong(Song* s);
 
 private:
     //Path to the song, used by the MP3 player to play the song later
