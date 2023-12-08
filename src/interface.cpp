@@ -17,6 +17,8 @@
 #include "playlist.h"
 #include "settingswindow.h"
 #include "searchwindow.h"
+#include "equalizerwindow.h"
+
 
 
 //Interface Constructor
@@ -28,6 +30,9 @@ Interface::Interface(): QMainWindow() {
 
     //Create settings window
     this->settingsWindow = new SettingsWindow();
+
+    //Create Equalizer Window
+    this->equalizerWindow = new EqualizerWindow();
 
     //Media player element
     this->player = new MediaPlayer();
@@ -156,6 +161,10 @@ QHBoxLayout* Interface::createMainToolbar()
     QPushButton* settingsButton = new QPushButton("Settings");
     connect(settingsButton, &QPushButton::clicked, this->settingsWindow, &QMainWindow::show);
     toolbar->addWidget(settingsButton);
+
+    QPushButton* equalizerButton = new QPushButton("Equalizer");
+    connect(equalizerButton, &QPushButton::clicked, this, &Interface::openEqualizerWindow);
+    toolbar->addWidget(equalizerButton);
 
 	return toolbar;
 }
@@ -348,3 +357,10 @@ void Interface::deletePlaylist() {
     }
 }
 
+void Interface::openEqualizerWindow() {
+
+    qDebug() << "Opening Equalizer Window..";
+    //Show equalizer window when pressing equalizer button
+    this->equalizerWindow->show();
+
+}

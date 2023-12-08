@@ -1,6 +1,7 @@
 #include "equalizerwindow.h"
-#include "./ui_equalizerwindow.h"
+//#include "./ui_equalizerwindow.h"
 #include "ui_equalizerwindow.h"
+#include "equalizerwindow.h"
 #include "QVBoxLayout"
 #include <QLabel>
 #include <Qfile>

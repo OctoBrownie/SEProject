@@ -15,6 +15,7 @@ class MediaPlayer;
 class SearchWindow;
 class QWidget;
 class SettingsWindow;
+class EqualizerWindow;
 
 /*
    --------------------------------------------
@@ -56,6 +57,9 @@ protected:
     //Delete a playlist, which removes it from the application and deletes the original playlist.
     void deletePlaylist();
 
+    //Open Equalizer Window when user clicks on Equalizer Button
+    void openEqualizerWindow();
+
 
 private:
     //The currently loaded playlist. Can change when new playlists are imported.
@@ -84,6 +88,8 @@ private:
 
     //The settings window toset and find settings.
     SettingsWindow* settingsWindow;
+
+    EqualizerWindow* equalizerWindow;
 
 };
 
