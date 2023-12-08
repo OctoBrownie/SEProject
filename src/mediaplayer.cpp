@@ -88,7 +88,7 @@ MediaPlayer::MediaPlayer(QWidget* parent): QWidget(parent)
     QPushButton* pausebutton = new QPushButton();
     QPushButton* skipbutton = new QPushButton();
     QPushButton* backbutton = new QPushButton();
-    QPushButton* loopbutton = new QPushButton();
+    loopbutton = new QPushButton();
     QPushButton* eqbutton = new QPushButton();
     QPushButton* randomButton = new QPushButton();
 
@@ -121,7 +121,7 @@ MediaPlayer::MediaPlayer(QWidget* parent): QWidget(parent)
     connect(backbutton, &QPushButton::clicked, this, &MediaPlayer::rewind);
     connect(playbutton, SIGNAL (clicked()), this, SLOT (play()));
     connect(pausebutton, SIGNAL (clicked()), this, SLOT (pause()));
-
+   connect(loopbutton, SIGNAL(clicked()), this, SLOT(swapLoop()));
     buttons->setLayout(buttonLayout);
 
     //Add the metadata element, the buttons, and set this to display theGUI environment
@@ -155,6 +155,14 @@ void MediaPlayer::setPlaylist(Playlist* playlist) {
     connect(this->currentPlaylist, &Playlist::newSelectedSong, this, &MediaPlayer::updateCurrentSong);
 }
 
+void MediaPlayer::updateLoopButtonStyle() {
+    if (isLooped) {
+        loopbutton->setStyleSheet("background-color: lightgreen;");
+    } else {
+        loopbutton->setStyleSheet("background-color: white;");
+    }
+}
+
 //Create a PixMap image from the image data
 void MediaPlayer::generateImage(QImage* songImage)
 {
@@ -180,6 +188,7 @@ void MediaPlayer::skip() {
         return;
 
     //Else, skip to the next song. This function will set it to -5 if skip goes past the end
+    if(!this->isLooped)
     this->currentPlaylist->setSelectedSong(this->currentPlaylist->getSelectedSong() + 1, false);
 
     //Close the current stream, and then play the new stream
@@ -236,6 +245,9 @@ void MediaPlayer::swapLoop() {
     } else {
         this-> isLooped = false;
     }
+    updateLoopButtonStyle();
+    //std::cout << "Initial Loop Status: " << (this->isLooped ? "True" : "False") << std::endl;
+
 }
 
 //Close the current decoding stream; no more file to audio
@@ -416,7 +428,9 @@ void MediaPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
         }
 
         --i;	// reset loop counter to the last byte written (so it works next loop)
+
         ++player->currSample;
+
     }
 
     if (endofSong)

@@ -3,6 +3,7 @@
 
 #include<SDL_stdinc.h>
 #include<SDL_audio.h>
+#include<QPushButton>
 
 // FFMPEG
 struct AVFormatContext;	// <libavformat/avformat.h>
@@ -36,6 +37,12 @@ class MediaPlayer: public QWidget
 public:
     explicit MediaPlayer(QWidget* parent=nullptr);
 
+    //Determines if the playlist is looped or not
+    bool isLooped = false;
+
+
+
+
 
     /**
      * Destructor for the music player. Closes the audio stream and releases
@@ -66,9 +73,10 @@ public:
 
 
 
+
+
 protected:
-    //Sets whether the playlist should loop or not loop.
-    void swapLoop();
+
 
     //Create the PixMap image for the current song being played, so it is displayed in the player
     void generateImage(QImage* songImage);
@@ -129,6 +137,9 @@ public slots:
      */
     void play();
 
+    void swapLoop();
+    void updateLoopButtonStyle();
+
     /**
      * Pauses audio playback.
      */
@@ -153,14 +164,16 @@ private:
     //The Qt object that contains the actual image data.
     QImage* currentSongArt;
 
-    //Determines if the playlist is looped or not
-    bool isLooped = false;
+
 
     //Determines if the playlist is random or not.
     bool isRandom = false;
 
     //Currently opened and playing playlist.
     Playlist* currentPlaylist;
+
+
+    QPushButton* loopbutton;
 
 };
 
