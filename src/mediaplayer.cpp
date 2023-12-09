@@ -34,7 +34,7 @@ extern "C" {
 
 
 //Media Player class, inherits from QWidget
-MediaPlayer::MediaPlayer(QWidget* parent): QWidget(parent)
+MediaPlayer::MediaPlayer(Playlist* playlist): QWidget()
 {
     //Media processing variables
     this->currFormatCtx = nullptr;
@@ -66,6 +66,8 @@ MediaPlayer::MediaPlayer(QWidget* parent): QWidget(parent)
     this->currentSongArt = new QImage();
     //Create the image, which sets this->currentImage
     this->generateImage(this->currentSongArt);
+
+    this->setPlaylist(playlist);
 
     //Add the newly created data to the song data section
     songDataLayout->addWidget(this->currentImage);

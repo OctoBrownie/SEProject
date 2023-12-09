@@ -35,10 +35,7 @@ Interface::Interface(): QMainWindow() {
     this->equalizerWindow = new EqualizerWindow();
 
     //Media player element
-    this->player = new MediaPlayer();
-    //Set the player to be assigned to a set playlist
-    this->player->setPlaylist(this->currentPlaylist);
-
+    this->player = new MediaPlayer(this->currentPlaylist);
 
 /* ----------------------------
  *

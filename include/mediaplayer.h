@@ -35,7 +35,7 @@ class MediaPlayer: public QWidget
 {
     Q_OBJECT
 public:
-    explicit MediaPlayer(QWidget* parent=nullptr);
+    explicit MediaPlayer(Playlist* playlist);
 
     //Determines if the playlist is looped or not
     bool isLooped = false;
