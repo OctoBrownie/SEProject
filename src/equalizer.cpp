@@ -14,10 +14,10 @@
 #define EQUALIZER_HIGH_FREQ 30
 
 
-Equalizer::Equalizer(int channels) : Equalizer(channels, 1, 1, 1) {}
+Equalizer::Equalizer(int channels) : Equalizer(channels, 1, 1, 2) {}
 
 Equalizer::Equalizer(int channels, float low, float mid, float high) :
-	lowMult{low}, midMult{mid}, highMult{high}, numChannels{channels} {
+	lowMult{low/3.0f}, midMult{mid/3.0f}, highMult{high/3.0f}, numChannels{channels} {
 
 	TEMPVAR = 0;
 
@@ -32,10 +32,14 @@ Equalizer::Equalizer(int channels, float low, float mid, float high) :
 		for (int j = 0; j < EQUALIZER_NUM_TAPS; j++) data[i][j] = 0;
 	}
 
-	// filter constants
+	// still dunno what m is but apparently it's part of the equalizer stuff
 	float m;
 
+	// total coeffs for unity gain
+	float lowTotal = 0, midTotal = 0, highTotal = 0;
+
 	// TODO: responsive sample rate?
+	// filter constants
 	float lambda = 2 * M_PI * EQUALIZER_LOW_FREQ / 44.1;
 	float phi = 2 * M_PI * EQUALIZER_HIGH_FREQ / 44.1;
 
@@ -47,16 +51,23 @@ Equalizer::Equalizer(int channels, float low, float mid, float high) :
 
 		// low pass
 		lowTaps[i] = m == 0 ? lambda/M_PI : sin(lambda*m)/(M_PI*m);
+		lowTotal += lowTaps[i];
 
 		// high pass
 		highTaps[i] = m == 0 ? (1 - phi)/M_PI : -sin(phi*m)/(M_PI*m);
+		highTotal += highTaps[i];
 
 		// band pass
 		midTaps[i] = m == 0 ? (phi - lambda)/M_PI : (sin(m*phi) - sin(m*lambda))/(m * M_PI);
-
-//		std::cout << lowTaps[i] << ' ' << midTaps[i] << ' ' << highTaps[i] << std::endl;
+		midTotal += midTaps[i];
 	}
 
+	// apply unity gain
+	for (int i = 0; i < EQUALIZER_NUM_TAPS; i++) {
+		lowTaps[i] = lowTaps[i] / lowTotal;
+		midTaps[i] = midTaps[i] / midTotal;
+		highTaps[i] = highTaps[i] / highTotal;
+	}
 }
 
 Equalizer::~Equalizer() {
@@ -68,17 +79,17 @@ Equalizer::~Equalizer() {
 
 void Equalizer::setLowMult(float f) {
 	if (f < 0 || f > EQUALIZER_MAX_MULT) return;
-	lowMult = f;
+	lowMult = f/3.0;
 }
 
 void Equalizer::setMidMult(float f) {
 	if (f < 0 || f > EQUALIZER_MAX_MULT) return;
-	midMult = f;
+	midMult = f/3.0;
 }
 
 void Equalizer::setHighMult(float f) {
 	if (f < 0 || f > EQUALIZER_MAX_MULT) return;
-	highMult = f;
+	highMult = f/3.0;
 }
 
 float Equalizer::getSample(int ch, float f) {
@@ -93,7 +104,7 @@ float Equalizer::getSample(int ch, float f) {
 	// convolve the filter and data
 	float res = 0;
 	for (int i = 0; i < EQUALIZER_NUM_TAPS; i++) {
-		res += data[ch][i]*lowTaps[i]*1.5;
+		res += data[ch][i]*(lowTaps[i]*lowMult + midTaps[i]*midMult + highTaps[i]*highMult);
 	}
 	return res;
 }
