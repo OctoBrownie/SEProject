@@ -39,6 +39,7 @@ MusicPlayer::MusicPlayer(Equalizer* e, QWidget *parent)
 	currCodecCtx = nullptr;
 	currFrame = nullptr;
 	currPacket = nullptr;
+	playing = false;
 
 	audioDevice = 0;
 	currPacket = av_packet_alloc();
@@ -68,6 +69,7 @@ void MusicPlayer::closeStream() {
 		emit playbackStopped();
 	}
 
+	currSample = -1;
 	avcodec_free_context(&currCodecCtx);
 	avformat_close_input(&currFormatCtx);
 }
@@ -125,20 +127,29 @@ bool MusicPlayer::openStream() {
 }
 
 void MusicPlayer::play() {
+	if (playing) return;
+
 	if (!audioDevice && !openStream()) {
 		std::cerr << "Couldn't initialize the audio stream." << std::endl;
 		return;
 	}
 
 	SDL_PauseAudioDevice(audioDevice, false);
+	playing = true;
 	emit playbackStarted();
 }
 
 void MusicPlayer::pause() {
-	if (audioDevice) {
+	if (playing && audioDevice) {
 		SDL_PauseAudioDevice(audioDevice, true);
+		playing = false;
 		emit playbackStopped();
 	}
+}
+
+void MusicPlayer::playPause() {
+	if (!playing) play();
+	else pause();
 }
 
 void MusicPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
@@ -235,19 +246,10 @@ void MusicPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
 					++c;
 					++i;
 				}
-
-//				if (player->first) {
-//					player->first = false;
-//					std::cout << "from frame: " << *((float*) &player->currFrame->data[ch][sizeof(float)*player->currSample]) << std::endl;
-//					std::cout << "from equalizer: " << f << std::endl;
-//					std::cout << "in stream: " << std::hex << (int)stream[i-3] << (int)stream[i-2] << (int)stream[i-1] << (int)stream[i] << std::endl;
-//				}
 			}
 		}
 
 		--i;	// reset loop counter to the last byte written (so it works next loop)
 		++player->currSample;
 	}
-
-	// TODO: run stream through equalizer if no error
 }

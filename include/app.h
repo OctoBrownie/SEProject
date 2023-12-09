@@ -90,10 +90,15 @@ public:
 	bool addMainWidget(QWidget* mainWidget, bool keepStack=true, bool hidePlayBar=false);
 	Library* getLibrary() { return musicLibrary; }
 
+	QLineEdit *low, *mid, *high;
+
 public slots:
 	void goBack();
 	void openPlaylist(Playlist* p);
 	void searchLibrary();
+
+	void saveEqualizerSettings();
+	void makeEqualizer();
 signals:
 };
 

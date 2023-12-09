@@ -45,7 +45,7 @@ PlayerWidget::PlayerWidget(MusicPlayer* p, QWidget *parent)
 	b->setIcon(QIcon(":/icons/play.svg"));
 	b->setSizePolicy(policy);
 	layout->addWidget(b);
-	connect(b, SIGNAL(clicked()), p, SLOT(pause()));
+	connect(b, SIGNAL(clicked()), p, SLOT(playPause()));
 
 	// skip button
 	b = new QPushButton(this);

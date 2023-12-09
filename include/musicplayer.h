@@ -41,6 +41,8 @@ protected:
 
 	bool first = true;
 
+	bool playing;
+
 	// ***********************  FFMPEG things  ************************
 
 	// the current format context corresponding to the current song
@@ -108,6 +110,11 @@ public slots:
 	void pause();
 
 	void setSong(Song* s, bool start=true);
+
+	/**
+	 * Starts playback if paused, pauses if already started.
+	 */
+	void playPause();
 signals:
 	/**
 	 * Emitted when playback has started, including when new songs start (even if

@@ -99,7 +99,40 @@ QWidget* App::createTopBar(QWidget* parent) {
 	layout->addWidget(b);
 	// TODO: open settings from this button
 
+	connect(b, SIGNAL(clicked()), this, SLOT(makeEqualizer()));
+
 	return bar;
+}
+
+void App::saveEqualizerSettings() {
+	this->equalizer->setLowMult(this->low->text().toFloat());
+	this->equalizer->setMidMult(this->mid->text().toFloat());
+	this->equalizer->setHighMult(this->high->text().toFloat());
+}
+
+void App::makeEqualizer() {
+	QWidget* w = new QWidget(this);
+	QVBoxLayout* l = new QVBoxLayout(w);
+
+	this->low = new QLineEdit(w);
+	this->low->setPlaceholderText("low");
+	connect(this->low, SIGNAL(returnPressed()), this, SLOT(saveEqualizerSettings()));
+	l->addWidget(this->low);
+
+	this->mid = new QLineEdit(w);
+	this->mid->setPlaceholderText("mid");
+	connect(this->mid, SIGNAL(returnPressed()), this, SLOT(saveEqualizerSettings()));
+	l->addWidget(this->mid);
+
+	this->high = new QLineEdit(w);
+	this->high->setPlaceholderText("high");
+	connect(this->high, SIGNAL(returnPressed()), this, SLOT(saveEqualizerSettings()));
+	l->addWidget(this->high);
+	l->addStretch();
+
+	w->setLayout(l);
+	addMainWidget(w);
+
 }
 
 QWidget* App::createPlayBar(QWidget* parent) {
