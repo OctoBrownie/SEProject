@@ -1,12 +1,15 @@
-#include<fftw3.h>
+// ffmpeg
 extern "C" {
 #include<libavcodec/avcodec.h>
 #include<libavformat/avformat.h>
 #include<libavutil/avutil.h>
 }
+
+// cstdlib
 #include<iostream>
 #include<math.h>
 
+// Qt
 #include<QBuffer>
 #include<QByteArray>
 
@@ -19,15 +22,18 @@ extern "C" {
 #include<QAudioOutput>
 #include<QAudioFormat>
 
+// project
 #include "musicplayer.h"
 #include "song.h"
+#include "equalizer.h"
 
 
 #define DEFAULT_BUFFER_SIZE 4096
 
 
 
-MusicPlayer::MusicPlayer(QWidget *parent) : QWidget{parent} {
+MusicPlayer::MusicPlayer(Equalizer* e, QWidget *parent)
+	: QWidget{parent}, equalizer{e} {
 	currFormatCtx = nullptr;
 	currCodec = nullptr;
 	currCodecCtx = nullptr;
@@ -38,28 +44,6 @@ MusicPlayer::MusicPlayer(QWidget *parent) : QWidget{parent} {
 	currPacket = av_packet_alloc();
 	currFrame = av_frame_alloc();
 	currSample = -1;
-
-	QVBoxLayout* layout = new QVBoxLayout(this);
-
-	layout->addWidget(new QLabel("RAW AUDIO TEST:"));
-
-	QLabel* label = new QLabel("NOTE: Now, this shouldn't care about length of audio. Shouldn't "
-							   "create a malloc error even if you enter a normal length song...");
-	label->setWordWrap(true);
-	layout->addWidget(label);
-
-	this->lineEdit = new QLineEdit("Add a real path", this);
-	layout->addWidget(this->lineEdit);
-
-	QPushButton* b = new QPushButton("Play this file!");
-	b->setGeometry(10, 10, 80, 30);
-	layout->addWidget(b);
-	connect(b, SIGNAL (clicked()), this, SLOT (play()));
-
-	b = new QPushButton("Pause the file??");
-	b->setGeometry(10, 10, 80, 30);
-	layout->addWidget(b);
-	connect(b, SIGNAL (clicked()), this, SLOT (pause()));
 }
 
 MusicPlayer::~MusicPlayer() {
@@ -80,6 +64,7 @@ void MusicPlayer::closeStream() {
 		SDL_PauseAudioDevice(audioDevice, true);
 		SDL_CloseAudioDevice(audioDevice);
 		audioDevice = 0;
+		equalizer->flush();
 		emit playbackStopped();
 	}
 
@@ -234,9 +219,29 @@ void MusicPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
 		// read the current sample from the current frame (all channels)
 		// assuming floats since it's MP3
 		for (int ch = 0; ch < player->currCodecCtx->ch_layout.nb_channels; ++ch) {
-			for (unsigned long long j = 0; j < sizeof(float); j++) {
-				stream[i] = player->currFrame->data[ch][sizeof(float)*player->currSample + j];
-				++i;
+			if (player->equalizer == nullptr) {
+				// just send the samples directly
+				for (unsigned long long j = 0; j < sizeof(float); j++) {
+					stream[i] = player->currFrame->data[ch][sizeof(float)*player->currSample + j];
+					++i;
+				}
+			}
+			else {
+				// reroute to the equalizer first
+				float f = player->equalizer->getSample(ch, *((float*) &(player->currFrame->data[ch][sizeof(float)*player->currSample])));
+				char* c = (char*) (&f);
+				for (unsigned long long j = 0; j < sizeof(float); j++) {
+					stream[i] = *c;
+					++c;
+					++i;
+				}
+
+//				if (player->first) {
+//					player->first = false;
+//					std::cout << "from frame: " << *((float*) &player->currFrame->data[ch][sizeof(float)*player->currSample]) << std::endl;
+//					std::cout << "from equalizer: " << f << std::endl;
+//					std::cout << "in stream: " << std::hex << (int)stream[i-3] << (int)stream[i-2] << (int)stream[i-1] << (int)stream[i] << std::endl;
+//				}
 			}
 		}
 

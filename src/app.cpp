@@ -14,6 +14,7 @@
 #include "playlistcontainer.h"
 #include "playerwidget.h"
 #include "musicplayer.h"
+#include "equalizer.h"
 
 App::App(QWidget *parent) : QWidget{parent} {
 	setWindowState(Qt::WindowMaximized);
@@ -21,7 +22,8 @@ App::App(QWidget *parent) : QWidget{parent} {
 
 	this->mainWidgetStack = new QStack<QWidget*>();
 	this->currMainWidget = nullptr;
-	this->musicPlayer = new MusicPlayer(this);
+	this->equalizer = new Equalizer(2);
+	this->musicPlayer = new MusicPlayer(equalizer, this);
 	this->musicLibrary = new Library(this, musicPlayer);
 
 	// top level layout with everything in it
@@ -54,6 +56,7 @@ App::App(QWidget *parent) : QWidget{parent} {
 
 App::~App() {
 	delete this->mainWidgetStack;
+	delete this->equalizer;
 }
 
 QWidget* App::createTopBar(QWidget* parent) {

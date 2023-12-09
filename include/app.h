@@ -13,6 +13,7 @@ class Library;
 class Playlist;
 class PlaylistContainer;
 class MusicPlayer;
+class Equalizer;
 
 /**
  * Is the top-level widget that holds all other widgets of the application.
@@ -51,8 +52,9 @@ protected:
 	// contains the entire searchable music library
 	Library* musicLibrary;
 
-	// music player
+	// for playing the music
 	MusicPlayer* musicPlayer;
+	Equalizer* equalizer;
 
 
 

@@ -39,8 +39,7 @@ protected:
 	// current song being played (null if nothing is being played)
 	const Song* currSong;
 
-	// line edit widget representing which song the user wants to play
-	QLineEdit* lineEdit;
+	bool first = true;
 
 	// ***********************  FFMPEG things  ************************
 
@@ -76,9 +75,10 @@ protected:
 public:
 	/**
 	 * Makes a new music player with the given parent object.
+	 * @param e			the equalizer to send samples to
 	 * @param parent	the new parent of the music player
 	 */
-	explicit MusicPlayer(QWidget *parent = nullptr);
+	explicit MusicPlayer(Equalizer* e, QWidget *parent = nullptr);
 
 	/**
 	 * Destructor for the music player. Closes the audio stream and releases

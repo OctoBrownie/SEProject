@@ -53,6 +53,7 @@ Playlist* Playlist::createPlaylist(QString filename, MusicPlayer* player, QObjec
 		Song* newSong = Song::createSong(songPath);
 		if (newSong == nullptr) {
 			// invalid song, skip it
+			std::cerr << "Couldn't initialize \"" << songPath.toStdString() << '"' << std::endl;
 			continue;
 		}
 
