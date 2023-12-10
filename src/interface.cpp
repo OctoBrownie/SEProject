@@ -25,12 +25,14 @@
 #include<iostream>
 //Interface Constructor
 Interface::Interface(): QMainWindow() {
+    setWindowState(Qt::WindowMaximized);
+    setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     int choice;
     int highgain, midgain, lowgain;
     QString filePath;
 
-	QFile file(":/resources/config/settings.json");
+    QFile file("./config/settings.json");
 	if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream in (&file);
         QString jsonText = in.readAll();

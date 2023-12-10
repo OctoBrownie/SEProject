@@ -4,10 +4,10 @@
 #include "equalizer.h"
 
 // cutoff freq (kHz) for the low pass filter/band pass (lower)
-#define EQUALIZER_LOW_FREQ 0.1
+#define EQUALIZER_LOW_FREQ 0.7
 
 // cutoff freq (kHz) for the high pass filter/band pass (upper)
-#define EQUALIZER_HIGH_FREQ 30
+#define EQUALIZER_HIGH_FREQ 4
 
 
 Equalizer::Equalizer(int channels) : Equalizer(channels, 1, 1, 1) {}
