@@ -10,7 +10,21 @@
 class SettingsWindow: public QMainWindow
 {
 public:
-    SettingsWindow();
+    SettingsWindow(int option, QString filePath);
+
+
+private:
+
+    void hideEvent(QHideEvent* event) override;
+
+    int choice;
+    QString filePath;
+    QLabel* fileBrowseLabel;
+
+    void setImportPlaylist();
+    void setLabel();
+
+    void saveSettings();
 };
 
 #endif // SETTINGSWINDOW_H

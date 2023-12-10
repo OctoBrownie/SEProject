@@ -27,6 +27,8 @@ extern "C" {
 
 #include <QWidget>
 #include <QLabel>
+
+#include "equalizerwindow.h"
 #include "playlist.h"
 #include "mediaplayer.h"
 
@@ -34,7 +36,7 @@ extern "C" {
 
 
 //Media Player class, inherits from QWidget
-MediaPlayer::MediaPlayer(Playlist* playlist): QWidget()
+MediaPlayer::MediaPlayer(Playlist* playlist, EqualizerWindow* eqWindow): QWidget()
 {
     //Media processing variables
     this->currFormatCtx = nullptr;
@@ -68,6 +70,7 @@ MediaPlayer::MediaPlayer(Playlist* playlist): QWidget()
     this->generateImage(this->currentSongArt);
 
     this->setPlaylist(playlist);
+    this->eqWindow = eqWindow;
 
     //Add the newly created data to the song data section
     songDataLayout->addWidget(this->currentImage);
@@ -86,11 +89,11 @@ MediaPlayer::MediaPlayer(Playlist* playlist): QWidget()
 
     //Create all of the buttons, and add them to one widget
     QWidget* buttons = new QWidget();
-    QPushButton* playbutton = new QPushButton();
-    QPushButton* pausebutton = new QPushButton();
+    this->playbutton = new QPushButton();
+    this->pausebutton = new QPushButton();
     QPushButton* skipbutton = new QPushButton();
     QPushButton* backbutton = new QPushButton();
-    loopbutton = new QPushButton();
+    this->loopbutton = new QPushButton();
     QPushButton* eqbutton = new QPushButton();
     QPushButton* randomButton = new QPushButton();
 
@@ -102,19 +105,23 @@ MediaPlayer::MediaPlayer(Playlist* playlist): QWidget()
     const QIcon loopIcon = QIcon(":/resources/icons/loop.svg");
     const QIcon randomIcon = QIcon(":/resources/icons/randomize.svg");
 
-    playbutton->setIcon(playIcon);
-    pausebutton->setIcon(pauseIcon);
+    this->playbutton->setIcon(playIcon);
+    this->pausebutton->setIcon(pauseIcon);
     skipbutton->setIcon(skipIcon);
     backbutton->setIcon(backIcon);
     eqbutton->setIcon(eqIcon);
-    loopbutton->setIcon(loopIcon);
+    this->loopbutton->setIcon(loopIcon);
     randomButton->setIcon(randomIcon);
 
-    buttonLayout->addWidget(loopbutton);
+    this->playbutton->setCheckable(true);
+    this->pausebutton->setCheckable(true);
+
+
+    buttonLayout->addWidget(this->loopbutton);
     buttonLayout->addWidget(randomButton);
     buttonLayout->addWidget(backbutton);
-    buttonLayout->addWidget(playbutton);
-    buttonLayout->addWidget(pausebutton);
+    buttonLayout->addWidget(this->playbutton);
+    buttonLayout->addWidget(this->pausebutton);
     buttonLayout->addWidget(skipbutton);
     buttonLayout->addWidget(eqbutton);
 
@@ -123,12 +130,27 @@ MediaPlayer::MediaPlayer(Playlist* playlist): QWidget()
     connect(backbutton, &QPushButton::clicked, this, &MediaPlayer::rewind);
     connect(playbutton, SIGNAL (clicked()), this, SLOT (play()));
     connect(pausebutton, SIGNAL (clicked()), this, SLOT (pause()));
-   connect(loopbutton, SIGNAL(clicked()), this, SLOT(swapLoop()));
+    connect(loopbutton, SIGNAL(clicked()), this, SLOT(swapLoop()));
+    connect(eqbutton, &QPushButton::clicked, this->eqWindow, &EqualizerWindow::show);
     buttons->setLayout(buttonLayout);
+
+/*
+    QVBoxLayout* masterVolumeLayout = new QVBoxLayout();
+    QLabel* volumeName = new QLabel("Volume");
+    QFont vFont;
+    vFont.setPointSize(30);
+    volumeName->setFont(vFont);
+    QSlider* volumeSlider = new QSlider(Qt::Horizontal);
+    masterVolumeLayout->addWidget(volumeName);
+    masterVolumeLayout->addWidget(volumeSlider);
+
+    QWidget* masterVolume = new QWidget();
+    masterVolume->setLayout(masterVolumeLayout); */
 
     //Add the metadata element, the buttons, and set this to display theGUI environment
     playerLayout->addWidget(dataDisplay);
     playerLayout->addWidget(buttons);
+    //playerLayout->addWidget(masterVolume);
     this->setLayout(playerLayout);
 
     //Set it so that the signal callBackFinished (the song finishes playing) it skips to the next song.
@@ -191,7 +213,9 @@ void MediaPlayer::skip() {
 
     //Else, skip to the next song. This function will set it to -5 if skip goes past the end
     if(!this->isLooped)
-    this->currentPlaylist->setSelectedSong(this->currentPlaylist->getSelectedSong() + 1, false);
+        this->currentPlaylist->setSelectedSong(this->currentPlaylist->getSelectedSong() + 1, false);
+
+    this->playbutton->setChecked(true);
 
     //Close the current stream, and then play the new stream
     this->closeStream();
@@ -201,11 +225,17 @@ void MediaPlayer::skip() {
 //Rewind current song
 void MediaPlayer::rewind() {
     //If no song is currently selected, ignore
-    if (this->currentPlaylist->getSelectedSong() == -5)
+    if (this->currentPlaylist->getSelectedSong() == -5) {
+        this->playbutton->setChecked(false);
+        this->pausebutton->setChecked(false);
         return;
+    }
 
     //Set the song to the previous. The function will set it to -5 if rewide goes before the song began
-    this->currentPlaylist->setSelectedSong(this->currentPlaylist->getSelectedSong() - 1, false);
+    if(!this->isLooped)
+        this->currentPlaylist->setSelectedSong(this->currentPlaylist->getSelectedSong() - 1, false);
+
+    this->playbutton->setChecked(true);
 
     //Close the current stream and then play the new stream
     this->closeStream();
@@ -235,6 +265,8 @@ void MediaPlayer::updateCurrentSong(QString songPath, QString title, QString art
     this->closeStream();
     if (songPath != "") {
         this->play();
+    } else {
+        this->playbutton->setChecked(false);
     }
 }
 
@@ -322,6 +354,7 @@ bool MediaPlayer::openStream() {
 //Play a song, by disabling the pause
 void MediaPlayer::play() {
     if (this->currentSongPath == "") {
+        this->playbutton->setChecked(false);
         return;
     }
     if (!audioDevice && !openStream()) {
@@ -329,14 +362,22 @@ void MediaPlayer::play() {
         return;
     }
 
+    this->pausebutton->setChecked(false);
+    this->playbutton->setChecked(true);
+
     SDL_PauseAudioDevice(audioDevice, false);
 }
 
 //Pause a song, by enabling the pause.
 void MediaPlayer::pause() {
     if (this->currentSongPath == "") {
+        this->pausebutton->setChecked(false);
         return;
     }
+
+    this->playbutton->setChecked(false);
+    this->pausebutton->setChecked(true);
+
     if (audioDevice) SDL_PauseAudioDevice(audioDevice, true);
 }
 
@@ -441,4 +482,17 @@ void MediaPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
 
     // TODO: run stream through equalizer if no error
 }
+
+
+
+
+void MediaPlayer::setEqualizer(EqualizerWindow* eqWindow) {
+    this->eqWindow = eqWindow;
+}
+
+
+EqualizerWindow* MediaPlayer::getEqualizer() {
+    return this->eqWindow;
+}
+
 

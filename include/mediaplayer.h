@@ -24,7 +24,7 @@ class Playlist;
 class QString;
 class QLineEdit;
 class QLabel;
-
+class EqualizerWindow;
 
 
 /**
@@ -35,13 +35,14 @@ class MediaPlayer: public QWidget
 {
     Q_OBJECT
 public:
-    explicit MediaPlayer(Playlist* playlist);
+    explicit MediaPlayer(Playlist* playlist, EqualizerWindow* eqWindow);
 
     //Determines if the playlist is looped or not
     bool isLooped = false;
 
 
-
+    void setEqualizer(EqualizerWindow* eqWindow);
+    EqualizerWindow* getEqualizer();
 
 
     /**
@@ -125,6 +126,9 @@ protected:
      */
     void closeStream();
 
+
+
+
 //When the file has been processed, via the use of the playlist function, this signal is emitted. Is done to control asynchronous actions, and to allow the song to skip to the next song when it is done playing.
 signals:
     void callBackFinished();
@@ -174,6 +178,10 @@ private:
 
 
     QPushButton* loopbutton;
+    QPushButton* playbutton;
+    QPushButton* pausebutton;
+
+    EqualizerWindow* eqWindow;
 
 };
 

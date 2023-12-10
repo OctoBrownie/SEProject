@@ -295,7 +295,6 @@ void Playlist::processPlaylist(QString filename) {
         while (!input.atEnd()) {
             //Read the line,
             QString songPath = input.readLine();
-            qDebug() << "This is a file named: " << songPath;
 
             QFile testFile(songPath);
             if (testFile.exists()) {

@@ -7,6 +7,8 @@
 #include<QDockWidget>
 #include<QHBoxLayout>
 #include<QPushButton>
+#include <QJsonDocument>
+#include <QJsonObject>
 
 //Application Header Includes
 
@@ -24,18 +26,48 @@
 //Interface Constructor
 Interface::Interface(): QMainWindow() {
 
+    int choice;
+    int highgain, midgain, lowgain;
+    QString filePath;
 
-    //Create and set the blank, empty playlist
-    this->currentPlaylist = new Playlist("");
+    QFile file("./config/settings.json");
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in (&file);
+        QString jsonText = in.readAll();
+        file.close();
+
+        QJsonDocument jsonDocument = QJsonDocument::fromJson(jsonText.toUtf8());
+
+        QJsonObject jsonObject = jsonDocument.object();
+
+        highgain = jsonObject["HighFrequency"].toInt();
+        midgain = jsonObject["MediumFrequency"].toInt();
+        lowgain = jsonObject["LowFrequency"].toInt();
+        choice = jsonObject["Option"].toInt();
+        filePath = jsonObject["Filename"].toString();
+    } else {
+        highgain = 50;
+        midgain = 50;
+        lowgain = 50;
+        choice = 0;
+        filePath = "";
+    }
+
+    if (choice == 0) {
+        //Create and set the blank, empty playlist
+        this->currentPlaylist = new Playlist("");
+    } else {
+        this->currentPlaylist = new Playlist(filePath);
+    }
 
     //Create settings window
-    this->settingsWindow = new SettingsWindow();
+    this->settingsWindow = new SettingsWindow(choice, filePath);
 
     //Create Equalizer Window
-    this->equalizerWindow = new EqualizerWindow();
+    EqualizerWindow* equalizerWindow = new EqualizerWindow(highgain, midgain, lowgain);
 
     //Media player element
-    this->player = new MediaPlayer(this->currentPlaylist);
+    this->player = new MediaPlayer(this->currentPlaylist, equalizerWindow);
 
 /* ----------------------------
  *
@@ -158,10 +190,6 @@ QHBoxLayout* Interface::createMainToolbar()
     QPushButton* settingsButton = new QPushButton("Settings");
     connect(settingsButton, &QPushButton::clicked, this->settingsWindow, &QMainWindow::show);
     toolbar->addWidget(settingsButton);
-
-    QPushButton* equalizerButton = new QPushButton("Equalizer");
-    connect(equalizerButton, &QPushButton::clicked, this, &Interface::openEqualizerWindow);
-    toolbar->addWidget(equalizerButton);
 
 	return toolbar;
 }

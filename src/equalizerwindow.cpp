@@ -8,7 +8,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-EqualizerWindow::EqualizerWindow(QWidget *parent)
+EqualizerWindow::EqualizerWindow(int highgain, int midgain, int lowgain, QWidget *parent)
     : QMainWindow(parent)
     , ui(new Ui::EqualizerWindow)
 {
@@ -27,10 +27,11 @@ EqualizerWindow::EqualizerWindow(QWidget *parent)
     connect(resetButton, &QPushButton::clicked, this, &EqualizerWindow::resetFrequencies);
 
     //Replace this with the file we will have for the equalizer settings
-    setSettings("filePathToSettings.json");
+    this->setSettings(highgain, midgain, lowgain);
 
 }
 
+/*
 // Read Equalizer settings from a file to set as default settings when window is opened
 void EqualizerWindow::setSettings(const QString &pathFile) {
 
@@ -62,6 +63,14 @@ void EqualizerWindow::setSettings(const QString &pathFile) {
     } else {
         qWarning() << "Unable to open settings file: " << pathFile;
     }
+}*/
+
+void EqualizerWindow::setSettings(int highgain, int midgain, int lowgain) {
+    ui->sliderLow->setValue(lowgain);
+    ui->sliderMedium->setValue(midgain);
+    ui->sliderHigh->setValue(highgain);
+
+    adjustFrequencies(lowgain, midgain, highgain);
 }
 
 // Change slider values when user moves a slider
@@ -117,13 +126,28 @@ void EqualizerWindow::resetFrequencies() {
 }
 
 //save settings from equalizer into a file for future refrences
-void EqualizerWindow::saveSettings(const QString &pathFile) {
+void EqualizerWindow::saveSettings() {
 
-    //Create JSON object
+    QFile file("./config/settings.json");
+
     QJsonObject jsonSettings;
 
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in (&file);
+        QString jsonText = in.readAll();
+
+        QJsonDocument jsonDocument = QJsonDocument::fromJson(jsonText.toUtf8());
+
+        jsonSettings = jsonDocument.object();
+
+        file.close();
+    } else {
+        return;
+    }
+
+
     //Save frequencies values into the JSON object
-    jsonSettings["LowFreqency"] = ui->sliderLow->value();
+    jsonSettings["LowFrequency"] = ui->sliderLow->value();
     jsonSettings["MediumFrequency"] = ui->sliderMedium->value();
     jsonSettings["HighFrequency"] = ui->sliderHigh->value();
 
@@ -131,14 +155,16 @@ void EqualizerWindow::saveSettings(const QString &pathFile) {
     QJsonDocument jsonDocument(jsonSettings);
 
     //Turn file into Qfile and try and open it to write to it
-    QFile file(pathFile);
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out (&file);
-        out <<jsonDocument.toJson();
+        file.write(jsonDocument.toJson());
         file.close();
-
-        qDebug() << "Settings saved to file:" << file.fileName();
+    } else {
+        return;
     }
+}
+
+void EqualizerWindow::hideEvent(QHideEvent* event) {
+    saveSettings();
 }
 
 EqualizerWindow::~EqualizerWindow()

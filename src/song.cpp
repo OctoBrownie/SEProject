@@ -30,7 +30,6 @@ Song::Song(QString path): QWidget()
 
         //Get title, artists, album, and duration. TagLib only returns StdStrings, and tag->title() needs to be reformatted into becoming a std::String
         this->title = QString::fromStdString(tag->title().to8Bit(true));
-        qDebug() << "This is the title: " << this->title;
         if (this->title.isNull()) {
             this->title = this->songPath;
         }
