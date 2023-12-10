@@ -25,6 +25,8 @@
 #include<iostream>
 //Interface Constructor
 Interface::Interface(): QMainWindow() {
+	setWindowState(Qt::WindowMaximized);
+	setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
 
     int choice;
     int highgain, midgain, lowgain;
