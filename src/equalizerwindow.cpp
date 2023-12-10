@@ -1,16 +1,18 @@
 #include "equalizerwindow.h"
-//#include "./ui_equalizerwindow.h"
 #include "ui_equalizerwindow.h"
-#include "equalizerwindow.h"
-#include "QVBoxLayout"
+#include "equalizer.h"
+
+#include <QVBoxLayout>
 #include <QLabel>
 #include <Qfile>
 #include <QJsonDocument>
 #include <QJsonObject>
 
+
+#define EQWINDOW_SLIDER_MAX 100
+
 EqualizerWindow::EqualizerWindow(int highgain, int midgain, int lowgain, QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::EqualizerWindow)
+	: QMainWindow(parent), ui(new Ui::EqualizerWindow), equalizer{new Equalizer(2, highgain, midgain, lowgain)}
 {
     ui->setupUi(this);
 
@@ -95,9 +97,9 @@ void EqualizerWindow::adjustFrequencies(double low, double medium, double high) 
 
     //Substitute audioSystem with the actual system that we will use to control audio
 
-    //audioSystem.setLowFrequency(low);
-    //audioSystem.setMediumFrequency(medium);
-    //audioSystem.setHighFrequency(high);
+	this->equalizer->setLowMult(low*2.0/EQWINDOW_SLIDER_MAX);
+	this->equalizer->setMidMult(medium*2.0/EQWINDOW_SLIDER_MAX);
+	this->equalizer->setHighMult(high*2.0/EQWINDOW_SLIDER_MAX);
 
     // Update labels with the corresponding frequencies
     ui->labelLow->setText(QString("Low Frequency: %1").arg(low));

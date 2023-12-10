@@ -22,7 +22,7 @@
 #include "equalizerwindow.h"
 
 
-
+#include<iostream>
 //Interface Constructor
 Interface::Interface(): QMainWindow() {
 
@@ -30,8 +30,8 @@ Interface::Interface(): QMainWindow() {
     int highgain, midgain, lowgain;
     QString filePath;
 
-    QFile file("./config/settings.json");
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+	QFile file(":/resources/config/settings.json");
+	if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream in (&file);
         QString jsonText = in.readAll();
         file.close();

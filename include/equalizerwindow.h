@@ -4,17 +4,20 @@
 #include <QMainWindow>
 #include <QSlider>
 
+class Equalizer;
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class EqualizerWindow; }
 QT_END_NAMESPACE
 
-class EqualizerWindow : public QMainWindow
-{
+class EqualizerWindow : public QMainWindow {
     Q_OBJECT
 
 public:
     EqualizerWindow(int highgain, int midgain, int lowgain, QWidget *parent = nullptr);
     ~EqualizerWindow();
+
+	Equalizer* getEqualizer() { return this->equalizer; }
 
 private:
     //void setupUi();
@@ -28,6 +31,7 @@ private:
     void saveSettings();
 
     Ui::EqualizerWindow *ui;
+	Equalizer* equalizer;
 
     void hideEvent(QHideEvent* event) override;
 

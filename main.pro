@@ -7,6 +7,7 @@ QT += multimedia
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 SOURCES += \
+    src/equalizer.cpp \
     src/equalizerwindow.cpp \
     src/interface.cpp \
     src/main.cpp \
@@ -20,6 +21,7 @@ SOURCES += \
     src/searchwindow.cpp \
 
 HEADERS += \
+    include/equalizer.h \
     include/equalizerwindow.h \
     include/interface.h \
     include/mediaplayer.h \

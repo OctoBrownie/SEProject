@@ -12,5 +12,6 @@
         <file>icons/downButton.svg</file>
         <file>icons/upButton.svg</file>
         <file>icons/randomize.svg</file>
+        <file>config/settings.json</file>
     </qresource>
 </RCC>

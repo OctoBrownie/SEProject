@@ -18,7 +18,6 @@ struct AVPacket;		// <libavutil/avcodec.h>
 
 
 //Class Definitions
-class Equalizer;
 class Song;
 class Playlist;
 class QString;
@@ -89,10 +88,7 @@ protected:
      * Handle to the audio device playing music (used with SDL). Will be zero if
      * the stream is closed, nonzero otherwise.
      */
-    SDL_AudioDeviceID audioDevice;
-
-    // equalizer to send song data to
-    Equalizer* equalizer;
+	SDL_AudioDeviceID audioDevice;
 
 
     // ***********************  FFMPEG things  ************************

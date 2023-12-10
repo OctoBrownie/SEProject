@@ -31,6 +31,7 @@ extern "C" {
 #include "equalizerwindow.h"
 #include "playlist.h"
 #include "mediaplayer.h"
+#include "equalizer.h"
 
 #define DEFAULT_BUFFER_SIZE 4096
 
@@ -463,12 +464,26 @@ void MediaPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
 
         // read the current sample from the current frame (all channels)
         // assuming floats since it's MP3
-        for (int ch = 0; ch < player->currCodecCtx->ch_layout.nb_channels; ++ch) {
-            for (unsigned long long j = 0; j < sizeof(float); j++) {
-                stream[i] = player->currFrame->data[ch][sizeof(float)*player->currSample + j];
-                ++i;
-            }
-        }
+		for (int ch = 0; ch < player->currCodecCtx->ch_layout.nb_channels; ++ch) {
+			if (player->eqWindow->getEqualizer() == nullptr) {
+				// just send the samples directly
+				for (unsigned long long j = 0; j < sizeof(float); j++) {
+					stream[i] = player->currFrame->data[ch][sizeof(float)*player->currSample + j];
+					++i;
+				}
+			}
+			else {
+				// reroute to the equalizer first
+				float f = player->eqWindow->getEqualizer()->getSample(ch,
+							*((float*) &(player->currFrame->data[ch][sizeof(float)*player->currSample])));
+				char* c = (char*) (&f);
+				for (unsigned long long j = 0; j < sizeof(float); j++) {
+					stream[i] = *c;
+					++c;
+					++i;
+				}
+			}
+		}
 
         --i;	// reset loop counter to the last byte written (so it works next loop)
 
@@ -476,11 +491,7 @@ void MediaPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
 
     }
 
-    if (endofSong)
-        emit player->callBackFinished();
-
-
-    // TODO: run stream through equalizer if no error
+	if (endofSong) emit player->callBackFinished();
 }
 
 
