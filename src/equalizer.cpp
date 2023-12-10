@@ -3,10 +3,6 @@
 
 #include "equalizer.h"
 
-
-// max muliplier for any equalizer setting
-#define EQUALIZER_MAX_MULT 5
-
 // cutoff freq (kHz) for the low pass filter/band pass (lower)
 #define EQUALIZER_LOW_FREQ 0.1
 
@@ -14,7 +10,7 @@
 #define EQUALIZER_HIGH_FREQ 30
 
 
-Equalizer::Equalizer(int channels) : Equalizer(channels, 1, 1, 2) {}
+Equalizer::Equalizer(int channels) : Equalizer(channels, 1, 1, 1) {}
 
 Equalizer::Equalizer(int channels, float low, float mid, float high) :
 	lowMult{low/3.0f}, midMult{mid/3.0f}, highMult{high/3.0f}, numChannels{channels} {

@@ -8,7 +8,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
-
+#define EQWINDOW_DEFAULT_SLIDER_VAL 50
 #define EQWINDOW_SLIDER_MAX 100
 
 EqualizerWindow::EqualizerWindow(int highgain, int midgain, int lowgain, QWidget *parent)
@@ -77,29 +77,14 @@ void EqualizerWindow::setSettings(int highgain, int midgain, int lowgain) {
 
 // Change slider values when user moves a slider
 void EqualizerWindow::sliderChange() {
-
-    //Set values to what the sliders are at (user changed)
-    int lowValue = ui->sliderLow->value();
-    int mediumValue = ui->sliderMedium->value();
-    int highValue = ui->sliderHigh->value();
-
-    //Turn values into type double
-    double normLow= static_cast<double>(lowValue);
-    double normMedium = static_cast<double>(mediumValue);
-    double normHigh = static_cast<double>(highValue);
-
-    // Adjust frequencies based on slider values
-    adjustFrequencies(normLow, normMedium, normHigh);
+	adjustFrequencies(ui->sliderLow->value(), ui->sliderMedium->value(), ui->sliderHigh->value());
 }
 
 // Update labels to show the values for the changed frequencies
 void EqualizerWindow::adjustFrequencies(double low, double medium, double high) {
-
-    //Substitute audioSystem with the actual system that we will use to control audio
-
-	this->equalizer->setLowMult(low*2.0/EQWINDOW_SLIDER_MAX);
-	this->equalizer->setMidMult(medium*2.0/EQWINDOW_SLIDER_MAX);
-	this->equalizer->setHighMult(high*2.0/EQWINDOW_SLIDER_MAX);
+	this->equalizer->setLowMult(low*EQUALIZER_MAX_MULT/EQWINDOW_SLIDER_MAX);
+	this->equalizer->setMidMult(medium*EQUALIZER_MAX_MULT/EQWINDOW_SLIDER_MAX);
+	this->equalizer->setHighMult(high*EQUALIZER_MAX_MULT/EQWINDOW_SLIDER_MAX);
 
     // Update labels with the corresponding frequencies
     ui->labelLow->setText(QString("Low Frequency: %1").arg(low));
@@ -109,22 +94,13 @@ void EqualizerWindow::adjustFrequencies(double low, double medium, double high) 
 
 // Set Frequencies to default values if user clicks reset button
 void EqualizerWindow::resetFrequencies() {
+	//Set slider values to default value of 50
+	ui->sliderMedium->setValue(EQWINDOW_DEFAULT_SLIDER_VAL);
+	ui->sliderHigh->setValue(EQWINDOW_DEFAULT_SLIDER_VAL);
+	ui->sliderLow->setValue(EQWINDOW_DEFAULT_SLIDER_VAL);
 
-    //Reset value
-    const int resetValue = 50;
-
-    //Set slider values to default value of 50
-    ui->sliderMedium->setValue(resetValue);
-    ui->sliderHigh->setValue(resetValue);
-    ui->sliderLow->setValue(resetValue);
-
-    //Change value into type double
-    double normLow = static_cast<double>(resetValue);
-    double normMedium = static_cast<double>(resetValue);
-    double normHigh = static_cast<double>(resetValue);
-
-    // Adjust frequencies based on slider values
-    adjustFrequencies(normLow, normMedium, normHigh);
+	// Adjust frequencies based on slider values
+	adjustFrequencies(EQWINDOW_DEFAULT_SLIDER_VAL, EQWINDOW_DEFAULT_SLIDER_VAL, EQWINDOW_DEFAULT_SLIDER_VAL);
 }
 
 //save settings from equalizer into a file for future refrences

@@ -4,6 +4,9 @@
 // number of taps in the FIR filter
 #define EQUALIZER_NUM_TAPS 10
 
+// max muliplier for any equalizer setting
+#define EQUALIZER_MAX_MULT 3
+
 /**
  * Handles equalizing audio data for playback on the fly.
  */

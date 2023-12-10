@@ -4,7 +4,6 @@
 #include<QPushButton>
 #include<QLabel>
 #include<QString>
-#include<fftw3.h>
 extern "C" {
 #include<libavcodec/avcodec.h>
 #include<libavformat/avformat.h>
@@ -289,8 +288,10 @@ void MediaPlayer::swapLoop() {
 void MediaPlayer::closeStream() {
     if (audioDevice > 0) {
         SDL_PauseAudioDevice(audioDevice, true);
-        SDL_CloseAudioDevice(audioDevice);
+		SDL_CloseAudioDevice(audioDevice);
         audioDevice = 0;
+
+		if (eqWindow->getEqualizer() != nullptr) eqWindow->getEqualizer()->flush();
     }
 
     avcodec_free_context(&currCodecCtx);
@@ -388,6 +389,8 @@ void MediaPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
     MediaPlayer* player = (MediaPlayer*) userdata;
     bool error = false;
     bool endofSong = false;
+
+	// TODO: Make sure that equalizer lag is accounted for (don't skip the last like 10 samples)
 
 
     // TODO: stream len doesn't align with num channels*float size?
