@@ -1,3 +1,4 @@
+#include <algorithm>
 #include<QHBoxLayout>
 #include<QVBoxLayout>
 #include<QFrame>
@@ -9,6 +10,8 @@ extern "C" {
 #include<libavformat/avformat.h>
 #include<libavutil/avutil.h>
 }
+#include <QDebug>
+
 #include<iostream>
 #include<math.h>
 
@@ -70,6 +73,7 @@ MediaPlayer::MediaPlayer(Playlist* playlist, EqualizerWindow* eqWindow): QWidget
     this->generateImage(this->currentSongArt);
 
     this->setPlaylist(playlist);
+
     this->eqWindow = eqWindow;
 
     //Add the newly created data to the song data section
@@ -94,8 +98,8 @@ MediaPlayer::MediaPlayer(Playlist* playlist, EqualizerWindow* eqWindow): QWidget
     QPushButton* skipbutton = new QPushButton();
     QPushButton* backbutton = new QPushButton();
     this->loopbutton = new QPushButton();
+    this->randomButton = new QPushButton();
     QPushButton* eqbutton = new QPushButton();
-    QPushButton* randomButton = new QPushButton();
 
     const QIcon playIcon = QIcon(":/resources/icons/play.svg");
     const QIcon pauseIcon = QIcon(":/resources/icons/pause.svg");
@@ -111,14 +115,14 @@ MediaPlayer::MediaPlayer(Playlist* playlist, EqualizerWindow* eqWindow): QWidget
     backbutton->setIcon(backIcon);
     eqbutton->setIcon(eqIcon);
     this->loopbutton->setIcon(loopIcon);
-    randomButton->setIcon(randomIcon);
+    this->randomButton->setIcon(randomIcon);
 
     this->playbutton->setCheckable(true);
     this->pausebutton->setCheckable(true);
 
 
     buttonLayout->addWidget(this->loopbutton);
-    buttonLayout->addWidget(randomButton);
+    buttonLayout->addWidget(this->randomButton);
     buttonLayout->addWidget(backbutton);
     buttonLayout->addWidget(this->playbutton);
     buttonLayout->addWidget(this->pausebutton);
@@ -131,6 +135,7 @@ MediaPlayer::MediaPlayer(Playlist* playlist, EqualizerWindow* eqWindow): QWidget
     connect(playbutton, SIGNAL (clicked()), this, SLOT (play()));
     connect(pausebutton, SIGNAL (clicked()), this, SLOT (pause()));
     connect(loopbutton, SIGNAL(clicked()), this, SLOT(swapLoop()));
+    connect(randomButton, SIGNAL(clicked()), this, SLOT(swapRandom()));
     connect(eqbutton, &QPushButton::clicked, this->eqWindow, &EqualizerWindow::show);
     buttons->setLayout(buttonLayout);
 
@@ -176,6 +181,17 @@ MediaPlayer::~MediaPlayer() {
 //Set the playlist, and link the playlist so that when a song is selected in a playlist, it is set in the media player
 void MediaPlayer::setPlaylist(Playlist* playlist) {
     this->currentPlaylist = playlist;
+
+    // Store the original order of songs when shuffle is off
+    this->originalOrder.resize(this->currentPlaylist->getSongList()->size());
+    for (qint64 i = 0; i < this->originalOrder.size(); ++i) {
+        this->originalOrder[i] = i;
+    }
+
+    copyOrder = originalOrder;
+
+    std::sort(copyOrder.begin(), copyOrder.end());
+
     connect(this->currentPlaylist, &Playlist::newSelectedSong, this, &MediaPlayer::updateCurrentSong);
 }
 
@@ -184,6 +200,14 @@ void MediaPlayer::updateLoopButtonStyle() {
         loopbutton->setStyleSheet("background-color: lightgreen;");
     } else {
         loopbutton->setStyleSheet("background-color: white;");
+    }
+}
+
+void MediaPlayer::updateRandomButtonStyle() {
+    if (ShuffleisRandom) {
+        randomButton->setStyleSheet("background-color: lightgreen;");
+    } else {
+        randomButton->setStyleSheet("background-color: white;");
     }
 }
 
@@ -207,20 +231,30 @@ void MediaPlayer::generateImage(QImage* songImage)
 
 //Skip the current song
 void MediaPlayer::skip() {
-    //If no song is currently selected, ignore
+    // If no song is currently selected, ignore
     if (this->currentPlaylist->getSelectedSong() == -5)
         return;
 
-    //Else, skip to the next song. This function will set it to -5 if skip goes past the end
-    if(!this->isLooped)
-        this->currentPlaylist->setSelectedSong(this->currentPlaylist->getSelectedSong() + 1, false);
+    if (this->ShuffleisRandom) {
+        shufflePlaylist();
+        shouldChangeSong = true;
+    } else {
+        qint64 originalIndex = this->currentPlaylist->getSelectedSong();
+        qint64 nextIndex = (originalIndex + 1) % this->currentPlaylist->getSongList()->size();
+        this->shouldChangeSong = true;
 
-    this->playbutton->setChecked(true);
+        // Use copyOrder only when shuffling is disabled
+        this->currentPlaylist->setSelectedSong(copyOrder[nextIndex], false);
+        qDebug() << "og order: " << copyOrder;
+    }
 
-    //Close the current stream, and then play the new stream
+    // Close the current stream, and then play the new stream
     this->closeStream();
     this->play();
 }
+
+
+
 
 //Rewind current song
 void MediaPlayer::rewind() {
@@ -282,6 +316,12 @@ void MediaPlayer::swapLoop() {
     updateLoopButtonStyle();
     //std::cout << "Initial Loop Status: " << (this->isLooped ? "True" : "False") << std::endl;
 
+}
+
+void MediaPlayer::swapRandom() {
+    ShuffleisRandom = !ShuffleisRandom;
+    updateRandomButtonStyle();
+    shouldChangeSong = false;
 }
 
 //Close the current decoding stream; no more file to audio
@@ -393,6 +433,12 @@ void MediaPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
 	// TODO: Make sure that equalizer lag is accounted for (don't skip the last like 10 samples)
 
 
+    // Check if the end of the song is reached
+    if (endofSong && player->shouldChangeSong) {
+        emit player->callBackFinished();
+        player->shouldChangeSong = false;
+        return;
+    }
     // TODO: stream len doesn't align with num channels*float size?
     for (int i = 0; i < len; i++) {
         if (error) {
@@ -509,4 +555,27 @@ EqualizerWindow* MediaPlayer::getEqualizer() {
     return this->eqWindow;
 }
 
+void MediaPlayer::shufflePlaylist() {
+
+    if (currentPlaylist) {
+        // Check if originalOrder is empty or if it's already shuffled
+        if (originalOrder.isEmpty() || std::is_sorted(originalOrder.begin(), originalOrder.end())) {
+            // If it's empty or already shuffled, initialize it to the natural order
+            originalOrder.resize(currentPlaylist->getSongList()->size());
+            for (qint64 i = 0; i < originalOrder.size(); ++i) {
+                originalOrder[i] = i;
+            }
+        }
+        // Shuffle the original order
+        std::random_shuffle(originalOrder.begin(), originalOrder.end());
+
+        // Apply the shuffled order to the current playlist
+        if(ShuffleisRandom){
+        currentPlaylist->setShuffledOrder(originalOrder);
+        qDebug() << "Shuffleorder: " << originalOrder;
+        }
+    }
+
+
+}
 

@@ -34,6 +34,7 @@ public:
     void setPlaylistName(QString name);
     void setSelectedSong(qint64 pos, bool move);
     void setPlaylistPath(QString playlistPath);
+    void setShuffledOrder(const QVector<qint64>& order);
 
     //Getters
     QString* getPlaylistPath();
@@ -93,6 +94,7 @@ protected:
     //Pointer in vector to current song, set to -5, as this marks that no song has been selected.
     qint64 selectedSong = -5;
 
+     QVector<qint64> shuffledOrder;
 
     //Items for the picture box item
     PictureBox* playlistImageBox;
