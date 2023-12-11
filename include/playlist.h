@@ -34,7 +34,6 @@ public:
     void setPlaylistName(QString name);
     void setSelectedSong(qint64 pos, bool move);
     void setPlaylistPath(QString playlistPath);
-    void setShuffledOrder(const QVector<qint64>& order);
 
     //Getters
     QString* getPlaylistPath();

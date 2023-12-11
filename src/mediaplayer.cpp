@@ -41,6 +41,9 @@ extern "C" {
 //Media Player class, inherits from QWidget
 MediaPlayer::MediaPlayer(Playlist* playlist, EqualizerWindow* eqWindow): QWidget()
 {
+
+    srand(static_cast<unsigned int>(time(0)));
+
     //Media processing variables
     this->currFormatCtx = nullptr;
     this->currCodec = nullptr;
@@ -139,18 +142,6 @@ MediaPlayer::MediaPlayer(Playlist* playlist, EqualizerWindow* eqWindow): QWidget
     connect(eqbutton, &QPushButton::clicked, this->eqWindow, &EqualizerWindow::show);
     buttons->setLayout(buttonLayout);
 
-/*
-    QVBoxLayout* masterVolumeLayout = new QVBoxLayout();
-    QLabel* volumeName = new QLabel("Volume");
-    QFont vFont;
-    vFont.setPointSize(30);
-    volumeName->setFont(vFont);
-    QSlider* volumeSlider = new QSlider(Qt::Horizontal);
-    masterVolumeLayout->addWidget(volumeName);
-    masterVolumeLayout->addWidget(volumeSlider);
-
-    QWidget* masterVolume = new QWidget();
-    masterVolume->setLayout(masterVolumeLayout); */
 
     //Add the metadata element, the buttons, and set this to display theGUI environment
     playerLayout->addWidget(dataDisplay);
@@ -163,6 +154,7 @@ MediaPlayer::MediaPlayer(Playlist* playlist, EqualizerWindow* eqWindow): QWidget
 
     //Set the stream to close when the current song is removed from the playlist
     connect(this->currentPlaylist, &Playlist::songRemoved, this, &MediaPlayer::closeStream);
+
 }
 
 //Destructor
@@ -182,15 +174,11 @@ MediaPlayer::~MediaPlayer() {
 void MediaPlayer::setPlaylist(Playlist* playlist) {
     this->currentPlaylist = playlist;
 
-    // Store the original order of songs when shuffle is off
-    this->originalOrder.resize(this->currentPlaylist->getSongList()->size());
-    for (qint64 i = 0; i < this->originalOrder.size(); ++i) {
-        this->originalOrder[i] = i;
-    }
+    if (this->isRandom)
+        this->swapRandom();
 
-    copyOrder = originalOrder;
-
-    std::sort(copyOrder.begin(), copyOrder.end());
+    if (this->isLooped)
+        this->swapLoop();
 
     connect(this->currentPlaylist, &Playlist::newSelectedSong, this, &MediaPlayer::updateCurrentSong);
 }
@@ -204,7 +192,7 @@ void MediaPlayer::updateLoopButtonStyle() {
 }
 
 void MediaPlayer::updateRandomButtonStyle() {
-    if (ShuffleisRandom) {
+    if (isRandom) {
         randomButton->setStyleSheet("background-color: lightgreen;");
     } else {
         randomButton->setStyleSheet("background-color: white;");
@@ -236,11 +224,48 @@ void MediaPlayer::skip() {
         return;
 
     // Else, skip to the next song. This function will set it to -5 if skip goes past the end
-    if (!isLooped) {
+    if (!isLooped && !isRandom) {
         currentPlaylist->setSelectedSong(currentPlaylist->getSelectedSong() + 1, false);
-        shouldChangeSong = true;
     }
+
+    if (!isLooped && isRandom) {
+        int pos = -1;
+        for (int i = 0; i < playOrder.length(); i++) {
+            if (playOrder[i] == this->currentPlaylist->getSelectedSong()) {
+                pos = i;
+            }
+        }
+
+        if (pos >= 0 && pos < (playOrder.length() - 1)){
+            currentPlaylist->setSelectedSong(playOrder[pos + 1], false);
+        } else {
+            int songsLength = this->currentPlaylist->getSongList()->length();
+            if (playOrder.length() < songsLength) {
+                int next;
+                bool exit = false;
+                while (!exit) {
+                    exit = true;
+                    next = rand() % songsLength;
+
+                    for (int i = 0; i < playOrder.length(); i++) {
+                        if (this->playOrder[i] == next) {
+                            exit = false;
+                            break;
+                        }
+                    }
+                }
+
+                playOrder.append(next);
+                currentPlaylist->setSelectedSong(next, false);
+            } else {
+                swapRandom();
+            }
+        }
+    }
+
+
     playbutton->setChecked(true);
+    pausebutton->setChecked(false);
 
     // Close the current stream, and then play the new stream
     closeStream();
@@ -255,16 +280,29 @@ void MediaPlayer::skip() {
 void MediaPlayer::rewind() {
     //If no song is currently selected, ignore
     if (this->currentPlaylist->getSelectedSong() == -5) {
-        this->playbutton->setChecked(false);
-        this->pausebutton->setChecked(false);
         return;
     }
 
     //Set the song to the previous. The function will set it to -5 if rewide goes before the song began
-    if(!this->isLooped)
+    if(!this->isLooped && !isRandom)
         this->currentPlaylist->setSelectedSong(this->currentPlaylist->getSelectedSong() - 1, false);
 
+    if(!this->isLooped && isRandom) {
+        int choiceSong = this->currentPlaylist->getSelectedSong();
+        for(int i = 0; i < playOrder.length(); i++) {
+            if (playOrder[i] == choiceSong) {
+                if ((i - 1) < 0) {
+                    swapRandom();
+                } else {
+                    this->currentPlaylist->setSelectedSong(playOrder[i - 1], false);
+                }
+                break;
+            }
+        }
+    }
+
     this->playbutton->setChecked(true);
+    this->pausebutton->setChecked(false);
 
     //Close the current stream and then play the new stream
     this->closeStream();
@@ -314,14 +352,21 @@ void MediaPlayer::swapLoop() {
 }
 
 void MediaPlayer::swapRandom() {
-    ShuffleisRandom = !ShuffleisRandom;
-    // Shuffle the playlist if random mode is enabled
-    if (ShuffleisRandom) {
-        shufflePlaylist();
-        shouldChangeSong = true;
+    if (this->currentPlaylist->getSongList()->length() == 0) {
+        return;
     }
+
+    isRandom = !isRandom;
     updateRandomButtonStyle();
-    shouldChangeSong = false;
+
+    if (isRandom) {
+        int value = rand() % this->currentPlaylist->getSongList()->length();
+        this->currentPlaylist->setSelectedSong(value, false);
+        this->playOrder.append(value);
+    } else {
+        this->currentPlaylist->getSongList()->at(this->currentPlaylist->getSelectedSong())->triggerMousePressEvent();
+        this->playOrder.clear();
+    }
 }
 
 //Close the current decoding stream; no more file to audio
@@ -433,12 +478,6 @@ void MediaPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
 	// TODO: Make sure that equalizer lag is accounted for (don't skip the last like 10 samples)
 
 
-    // Check if the end of the song is reached
-    if (endofSong && player->shouldChangeSong) {
-        emit player->callBackFinished();
-        player->shouldChangeSong = false;
-        return;
-    }
     // TODO: stream len doesn't align with num channels*float size?
     for (int i = 0; i < len; i++) {
         if (error) {
@@ -555,27 +594,8 @@ EqualizerWindow* MediaPlayer::getEqualizer() {
     return this->eqWindow;
 }
 
-void MediaPlayer::shufflePlaylist() {
 
-    if (currentPlaylist) {
-        // Check if originalOrder is empty or if it's already shuffled
-        if (originalOrder.isEmpty() || std::is_sorted(originalOrder.begin(), originalOrder.end())) {
-            // If it's empty or already shuffled, initialize it to the natural order
-            originalOrder.resize(currentPlaylist->getSongList()->size());
-            for (qint64 i = 0; i < originalOrder.size(); ++i) {
-                originalOrder[i] = i;
-            }
-        }
-        // Shuffle the original order
-        std::random_shuffle(originalOrder.begin(), originalOrder.end());
-
-        // Apply the shuffled order to the current playlist
-        if(ShuffleisRandom){
-        currentPlaylist->setShuffledOrder(originalOrder);
-        qDebug() << "Shuffleorder: " << originalOrder;
-        }
-    }
-
-
+bool MediaPlayer::getShuffled() {
+    return this->isRandom;
 }
 

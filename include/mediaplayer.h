@@ -70,11 +70,7 @@ public:
     //Public facing method for the closeStream function; only needed when importing a new playlist, which is not handled by this class
     void killStream();
 
-    void shufflePlaylist();
-    void setShuffledPlaylist();
-
-
-
+    bool getShuffled();
 
 
 
@@ -128,6 +124,7 @@ protected:
 
 
 
+
 //When the file has been processed, via the use of the playlist function, this signal is emitted. Is done to control asynchronous actions, and to allow the song to skip to the next song when it is done playing.
 signals:
     void callBackFinished();
@@ -175,7 +172,6 @@ private:
 
     //Determines if the playlist is random or not.
     bool isRandom = false;
-    bool ShuffleisRandom = false;
 
     //Currently opened and playing playlist.
     Playlist* currentPlaylist;
@@ -190,11 +186,7 @@ private:
 
     EqualizerWindow* eqWindow;
 
-    QVector<qint64> originalOrder;
-
-    QVector<qint64> copyOrder;
-
-    bool shouldChangeSong;
+    QVector<qint64> playOrder;
 
 
 };

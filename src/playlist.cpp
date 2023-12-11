@@ -440,20 +440,3 @@ void Playlist::moveSong(int pos, int status) {
         }
     }
 }
-
-void Playlist::setShuffledOrder(const QVector<qint64>& order) {
-    if (order.size() == allSongs.size()) {
-        QVector<Song*> newOrder;
-        newOrder.reserve(allSongs.size());
-
-        for (const qint64& index : order) {
-            if (index >= 0 && index < allSongs.size()) {
-                newOrder.push_back(allSongs[index]);
-            }
-        }
-
-        allSongs = newOrder;
-        shuffledOrder.clear();
-        shuffledOrder.reserve(allSongs.size());
-    }
-}

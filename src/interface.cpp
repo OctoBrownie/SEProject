@@ -209,8 +209,10 @@ QHBoxLayout* Interface::createPlaylistToolbar() {
 
     QPushButton* deleteButton = new QPushButton("Delete Selected");
     connect(deleteButton, &QPushButton::clicked, [=] {
-        this->currentPlaylist->removeSong(this->currentPlaylist->getSelectedSong());
-        this->currentPlaylist->setSelectedSong(-5, false);
+        if (!this->player->getShuffled()) {
+            this->currentPlaylist->removeSong(this->currentPlaylist->getSelectedSong());
+            this->currentPlaylist->setSelectedSong(-5, false);
+        }
     });
     toolbar->addWidget(deleteButton);
 
