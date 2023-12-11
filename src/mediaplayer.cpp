@@ -72,7 +72,8 @@ MediaPlayer::MediaPlayer(Playlist* playlist, EqualizerWindow* eqWindow): QWidget
     //Create the image, which sets this->currentImage
     this->generateImage(this->currentSongArt);
 
-    this->setPlaylist(playlist);
+    this->currentPlaylist = playlist;
+    connect(this->currentPlaylist, &Playlist::newSelectedSong, this, &MediaPlayer::updateCurrentSong);
 
     this->eqWindow = eqWindow;
 
@@ -139,18 +140,6 @@ MediaPlayer::MediaPlayer(Playlist* playlist, EqualizerWindow* eqWindow): QWidget
     connect(eqbutton, &QPushButton::clicked, this->eqWindow, &EqualizerWindow::show);
     buttons->setLayout(buttonLayout);
 
-/*
-    QVBoxLayout* masterVolumeLayout = new QVBoxLayout();
-    QLabel* volumeName = new QLabel("Volume");
-    QFont vFont;
-    vFont.setPointSize(30);
-    volumeName->setFont(vFont);
-    QSlider* volumeSlider = new QSlider(Qt::Horizontal);
-    masterVolumeLayout->addWidget(volumeName);
-    masterVolumeLayout->addWidget(volumeSlider);
-
-    QWidget* masterVolume = new QWidget();
-    masterVolume->setLayout(masterVolumeLayout); */
 
     //Add the metadata element, the buttons, and set this to display theGUI environment
     playerLayout->addWidget(dataDisplay);
@@ -182,15 +171,11 @@ MediaPlayer::~MediaPlayer() {
 void MediaPlayer::setPlaylist(Playlist* playlist) {
     this->currentPlaylist = playlist;
 
-    // Store the original order of songs when shuffle is off
-    this->originalOrder.resize(this->currentPlaylist->getSongList()->size());
-    for (qint64 i = 0; i < this->originalOrder.size(); ++i) {
-        this->originalOrder[i] = i;
-    }
+    if (this->setShuffle)
+        this->swapRandom();
 
-    copyOrder = originalOrder;
-
-    std::sort(copyOrder.begin(), copyOrder.end());
+    if (this->isLooped)
+        this->swapLoop();
 
     connect(this->currentPlaylist, &Playlist::newSelectedSong, this, &MediaPlayer::updateCurrentSong);
 }
@@ -204,7 +189,7 @@ void MediaPlayer::updateLoopButtonStyle() {
 }
 
 void MediaPlayer::updateRandomButtonStyle() {
-    if (ShuffleisRandom) {
+    if (this->setShuffle) {
         randomButton->setStyleSheet("background-color: lightgreen;");
     } else {
         randomButton->setStyleSheet("background-color: white;");
@@ -235,18 +220,11 @@ void MediaPlayer::skip() {
     if (this->currentPlaylist->getSelectedSong() == -5)
         return;
 
-    if (this->ShuffleisRandom) {
-        shufflePlaylist();
-        shouldChangeSong = true;
-    } else {
-        qint64 originalIndex = this->currentPlaylist->getSelectedSong();
-        qint64 nextIndex = (originalIndex + 1) % this->currentPlaylist->getSongList()->size();
-        this->shouldChangeSong = true;
+    //Else, skip to the next song. This function will set it to -5 if skip goes past the end
+    if(!this->isLooped)
+        this->currentPlaylist->setSelectedSong(this->currentPlaylist->getSelectedSong() + 1, false);
 
-        // Use copyOrder only when shuffling is disabled
-        this->currentPlaylist->setSelectedSong(copyOrder[nextIndex], false);
-        qDebug() << "og order: " << copyOrder;
-    }
+    this->playbutton->setChecked(true);
 
     // Close the current stream, and then play the new stream
     this->closeStream();
@@ -319,9 +297,14 @@ void MediaPlayer::swapLoop() {
 }
 
 void MediaPlayer::swapRandom() {
-    ShuffleisRandom = !ShuffleisRandom;
+    this->setShuffle = !this->setShuffle;
     updateRandomButtonStyle();
-    shouldChangeSong = false;
+
+    if (this->setShuffle) {
+        this->currentPlaylist->setShuffledOrder();
+    } else {
+        this->currentPlaylist->unsetShuffle();
+    }
 }
 
 //Close the current decoding stream; no more file to audio
@@ -433,12 +416,7 @@ void MediaPlayer::audioCallback(void* userdata, Uint8* stream, int len) {
 	// TODO: Make sure that equalizer lag is accounted for (don't skip the last like 10 samples)
 
 
-    // Check if the end of the song is reached
-    if (endofSong && player->shouldChangeSong) {
-        emit player->callBackFinished();
-        player->shouldChangeSong = false;
-        return;
-    }
+
     // TODO: stream len doesn't align with num channels*float size?
     for (int i = 0; i < len; i++) {
         if (error) {
@@ -555,27 +533,4 @@ EqualizerWindow* MediaPlayer::getEqualizer() {
     return this->eqWindow;
 }
 
-void MediaPlayer::shufflePlaylist() {
-
-    if (currentPlaylist) {
-        // Check if originalOrder is empty or if it's already shuffled
-        if (originalOrder.isEmpty() || std::is_sorted(originalOrder.begin(), originalOrder.end())) {
-            // If it's empty or already shuffled, initialize it to the natural order
-            originalOrder.resize(currentPlaylist->getSongList()->size());
-            for (qint64 i = 0; i < originalOrder.size(); ++i) {
-                originalOrder[i] = i;
-            }
-        }
-        // Shuffle the original order
-        std::random_shuffle(originalOrder.begin(), originalOrder.end());
-
-        // Apply the shuffled order to the current playlist
-        if(ShuffleisRandom){
-        currentPlaylist->setShuffledOrder(originalOrder);
-        qDebug() << "Shuffleorder: " << originalOrder;
-        }
-    }
-
-
-}
 

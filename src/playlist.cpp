@@ -5,11 +5,14 @@
 #include<QTextStream>
 #include<QScrollArea>
 #include<QLineEdit>
+#include <algorithm>
+#include <random>
 
 #include "playlist.h"
 
 //Playlist constructor
 Playlist::Playlist(QString filename) {
+    srand(static_cast<unsigned int>(time(0)));
     this->processPlaylist(filename);
 }
 
@@ -59,6 +62,7 @@ void Playlist::addSong(Song* newSong) {
     newSong->setPosition(this->allSongs.length());
     //Add to the vector
     this->allSongs.append(newSong);
+    this->permSongs.append(newSong);
 
     //Add the widget to the end of the layout
     this->songsListLayout->addWidget(newSong);
@@ -94,6 +98,13 @@ void Playlist::removeSong(qint64 position) {
 
     //Choose the song at the specified position.
     Song* chosenSong = this->allSongs[position];
+
+    for (int i = 0; i < permSongs.length(); i++) {
+        if (permSongs[i] == chosenSong) {
+            permSongs.remove(i);
+            break;
+        }
+    }
 
     //Update the duration, and the label in the metadata text.
     this->duration -= chosenSong->getDuration();
@@ -315,6 +326,8 @@ void Playlist::processPlaylist(QString filename) {
                 connect(newSong, &Song::buttonClicked, this, &Playlist::moveSong);
             }
         }
+
+        this->permSongs = this->allSongs;
     }
     else {
         this->openedPlaylist = filename;
@@ -441,19 +454,52 @@ void Playlist::moveSong(int pos, int status) {
     }
 }
 
-void Playlist::setShuffledOrder(const QVector<qint64>& order) {
-    if (order.size() == allSongs.size()) {
-        QVector<Song*> newOrder;
-        newOrder.reserve(allSongs.size());
+void Playlist::setShuffledOrder() {
+    for (int i = 0; i < allSongs.length(); i++) {
+        if (allSongs[i]->getSelected() == true) {
+            allSongs[i]->triggerMousePressEvent();
+        }
+    }
 
-        for (const qint64& index : order) {
-            if (index >= 0 && index < allSongs.size()) {
-                newOrder.push_back(allSongs[index]);
+    permSongs = allSongs;
+
+    std::random_device rd;
+    std::mt19937 g(rd());
+
+    std::shuffle(allSongs.begin(), allSongs.end(), g);
+
+    for (int i = 0; i < allSongs.length(); i++) {
+
+        allSongs[i]->setPosition(i);
+        QWidget* widget = this->songsListLayout->takeAt(0)->widget();
+        this->songsListLayout->removeWidget(widget);
+    }
+
+    for (int i = 0; i < allSongs.length(); i++) {
+        this->songsListLayout->addWidget(allSongs[i]);
+    }
+
+    allSongs[0]->triggerMousePressEvent();
+}
+
+void Playlist::unsetShuffle() {
+    allSongs = permSongs;
+    std::random_device rd;
+    std::mt19937 g(rd());
+
+    for (int i = 0; i < allSongs.length(); i++) {
+        allSongs[i]->setPosition(i);
+        QWidget* widget = this->songsListLayout->takeAt(0)->widget();
+        this->songsListLayout->removeWidget(widget);
+
+        if (allSongs[i]->getSelected() == true) {
+            if (i != this->getSelectedSong()) {
+                this->setSelectedSong(i, true);
             }
         }
+    }
 
-        allSongs = newOrder;
-        shuffledOrder.clear();
-        shuffledOrder.reserve(allSongs.size());
+    for (int i = 0; i < allSongs.length(); i++) {
+        this->songsListLayout->addWidget(allSongs[i]);
     }
 }

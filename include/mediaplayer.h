@@ -70,13 +70,6 @@ public:
     //Public facing method for the closeStream function; only needed when importing a new playlist, which is not handled by this class
     void killStream();
 
-    void shufflePlaylist();
-    void setShuffledPlaylist();
-
-
-
-
-
 
 protected:
 
@@ -174,8 +167,7 @@ private:
 
 
     //Determines if the playlist is random or not.
-    bool isRandom = false;
-    bool ShuffleisRandom = false;
+    bool setShuffle = false;
 
     //Currently opened and playing playlist.
     Playlist* currentPlaylist;
@@ -189,12 +181,6 @@ private:
     QPushButton* pausebutton;
 
     EqualizerWindow* eqWindow;
-
-    QVector<qint64> originalOrder;
-
-    QVector<qint64> copyOrder;
-
-    bool shouldChangeSong;
 
 
 };
