@@ -85,6 +85,7 @@ protected:
     void generateImage(QImage* songImage);
 
     //Update the current song
+    void updateCurrentSong(QString songPath, QString title, QString artist, QString album, QImage* songImage);
 
     /**
      * Handle to the audio device playing music (used with SDL). Will be zero if
@@ -145,7 +146,6 @@ public slots:
     void swapRandom();
     void updateRandomButtonStyle();
 
-    void updateCurrentSong(QString songPath, QString title, QString artist, QString album, QImage* songImage);
 
     /**
      * Pauses audio playback.

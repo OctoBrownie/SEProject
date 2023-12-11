@@ -232,26 +232,21 @@ void MediaPlayer::generateImage(QImage* songImage)
 //Skip the current song
 void MediaPlayer::skip() {
     // If no song is currently selected, ignore
-    if (this->currentPlaylist->getSelectedSong() == -5)
+    if (currentPlaylist->getSelectedSong() == -5)
         return;
 
-    if (this->ShuffleisRandom) {
-        shufflePlaylist();
+    // Else, skip to the next song. This function will set it to -5 if skip goes past the end
+    if (!isLooped) {
+        currentPlaylist->setSelectedSong(currentPlaylist->getSelectedSong() + 1, false);
         shouldChangeSong = true;
-    } else {
-        qint64 originalIndex = this->currentPlaylist->getSelectedSong();
-        qint64 nextIndex = (originalIndex + 1) % this->currentPlaylist->getSongList()->size();
-        this->shouldChangeSong = true;
-
-        // Use copyOrder only when shuffling is disabled
-        this->currentPlaylist->setSelectedSong(copyOrder[nextIndex], false);
-        qDebug() << "og order: " << copyOrder;
     }
+    playbutton->setChecked(true);
 
     // Close the current stream, and then play the new stream
-    this->closeStream();
-    this->play();
+    closeStream();
+    play();
 }
+
 
 
 
@@ -320,6 +315,11 @@ void MediaPlayer::swapLoop() {
 
 void MediaPlayer::swapRandom() {
     ShuffleisRandom = !ShuffleisRandom;
+    // Shuffle the playlist if random mode is enabled
+    if (ShuffleisRandom) {
+        shufflePlaylist();
+        shouldChangeSong = true;
+    }
     updateRandomButtonStyle();
     shouldChangeSong = false;
 }
