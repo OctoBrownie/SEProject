@@ -1,0 +1,16 @@
+<RCC>
+    <qresource prefix="/resources">
+        <file>icons/equalizer.svg</file>
+        <file>icons/loop.svg</file>
+        <file>icons/pause.svg</file>
+        <file>icons/play.svg</file>
+        <file>icons/rewind.svg</file>
+        <file>icons/settings.svg</file>
+        <file>icons/skip.svg</file>
+        <file>images/DefaultMusicImage.svg</file>
+        <file>images/NoPlaylistImage.svg</file>
+        <file>icons/downButton.svg</file>
+        <file>icons/upButton.svg</file>
+        <file>icons/randomize.svg</file>
+    </qresource>
+</RCC>
